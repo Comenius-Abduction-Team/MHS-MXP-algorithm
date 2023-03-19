@@ -4,12 +4,14 @@ import algorithms.ISolver;
 import com.google.common.collect.Iterables;
 import common.Configuration;
 
-import common.Printer;
 import models.Abducibles;
 import models.Explanation;
 import models.Literals;
 import org.semanticweb.owlapi.model.*;
 
+import progress.ApiProgressManager;
+import progress.ConsoleProgressManager;
+import progress.ProgressManager;
 import reasoner.AxiomManager;
 import reasoner.ILoader;
 import reasoner.IReasonerManager;
@@ -28,9 +30,9 @@ public class HybridSolver implements ISolver {
     private IReasonerManager reasonerManager;
     private Literals abd_literals;
     private ModelExtractor modelExtractor;
-    private ExplanationsFilter explanationsFilter;
+    private final ExplanationManager explanationManager;
+    private final ProgressManager progressManager;
     private SetDivider setDivider;
-    private List<OWLAxiom> lenghtOneExplanations = new ArrayList<>();
     private Set<Set<OWLAxiom>> pathsInCertainDepth = new HashSet<>();
 
     public OWLOntology ontology;
@@ -38,9 +40,7 @@ public class HybridSolver implements ISolver {
     public List<ModelNode> negModels;
     public List<OWLAxiom> assertionsAxioms;
     public List<OWLAxiom> negAssertionsAxioms;
-    public List<Explanation> possibleExplanations = new LinkedList<>();
     public Set<OWLAxiom> path = new HashSet<>();
-    //public List<OWLAxiom> path;
     public Set<OWLAxiom> pathDuringCheckingMinimality;
     public Abducibles abducibles;
     public int lastUsableModelIndex;
@@ -52,13 +52,36 @@ public class HybridSolver implements ISolver {
     private ICheckRules checkRules;
     private Integer currentDepth;
 
-    public HybridSolver(ThreadTimes threadTimes, long currentTimeMillis) {
+    public HybridSolver(ThreadTimes threadTimes, long currentTimeMillis,
+                        ConsoleExplanationManager explanationManager, ConsoleProgressManager progressManager) {
+
         System.out.println();
         System.out.println(String.join("\n", getInfo()));
         System.out.println();
 
+        this.explanationManager = explanationManager;
+        explanationManager.setSolver(this);
+
+        this.progressManager = progressManager;
+
         this.threadTimes = threadTimes;
         this.currentTimeMillis = currentTimeMillis;
+    }
+
+    public HybridSolver(ThreadTimes threadTimes, long currentTimeMillis,
+                        ApiExplanationManager explanationManager, ApiProgressManager progressManager) {
+
+        this.explanationManager = explanationManager;
+        explanationManager.setSolver(this);
+
+        this.progressManager = progressManager;
+
+        this.threadTimes = threadTimes;
+        this.currentTimeMillis = currentTimeMillis;
+    }
+
+    public ExplanationManager getExplanationManager(){
+        return explanationManager;
     }
 
     public List<String> getInfo() {
@@ -85,7 +108,6 @@ public class HybridSolver implements ISolver {
         this.reasonerManager = reasonerManager;
         this.ontology = this.loader.getOriginalOntology();
         this.modelExtractor = new ModelExtractor(loader, reasonerManager, this);
-        this.explanationsFilter = new ExplanationsFilter(loader, reasonerManager, this);
         this.setDivider = new SetDivider(this);
         this.checkRules = new CheckRules(loader, reasonerManager);
 
@@ -94,18 +116,24 @@ public class HybridSolver implements ISolver {
 
         initialize();
 
-        String message;
+        String message = null;
+
         if (!reasonerManager.isOntologyConsistent()) {
             message = "MESSAGE: nothing to explain";
-            makeFinalLog(message);
+            explanationManager.processExplanations(message);
         }
-//        else if (reasonerManager.isOntologyWithLiteralsConsistent(abd_literals.getOwlAxioms(), ontology)) { //tato pociatocna podmienka v MHS-MXP algoritme nevystupuje
-//            message = "MESSAGE: no conflicts, consistent with abducibles";
-//            makeFinalLog(message);
-//        }
+
+ /*       else if (reasonerManager.isOntologyWithLiteralsConsistent(abd_literals.getOwlAxioms(), ontology)) {
+            //tato pociatocna podmienka v MHS-MXP algoritme nevystupuje
+            message = "MESSAGE: no conflicts, consistent with abducibles";
+            makeFinalLog(message);
+        }*/
+
         else {
             trySolve();
         }
+
+        explanationManager.processExplanations(message);
     }
 
     private void trySolve() throws OWLOntologyStorageException, OWLOntologyCreationException {
@@ -115,29 +143,19 @@ public class HybridSolver implements ISolver {
             makeErrorAndPartialLog(e);
             throw e;
         } finally {
-            makeFinalLog(null);
+            explanationManager.processExplanations(null);
         }
     }
 
     private void makeErrorAndPartialLog(Throwable e) {
-        explanationsFilter.showError(e);
+        explanationManager.showError(e);
 
         Double time = threadTimes.getTotalUserTimeInSec();
         level_times.put(currentDepth, time);
-        explanationsFilter.showExplanationsWithDepth(currentDepth, false, true, time);
+        explanationManager.showExplanationsWithDepth(currentDepth, false, true, time);
         if(!Configuration.MHS_MODE){
-            explanationsFilter.showExplanationsWithDepth(currentDepth + 1, false, true, time);
-            explanationsFilter.showExplanationsWithLevel(currentDepth, false, true, time);
-        }
-    }
-
-    private void makeFinalLog(String message) throws OWLOntologyStorageException, OWLOntologyCreationException {
-        explanationsFilter.showExplanations();
-        explanationsFilter.showMessages(getInfo(), message);
-
-        if (message != null) {
-            System.out.println();
-            System.out.println(message);
+            explanationManager.showExplanationsWithDepth(currentDepth + 1, false, true, time);
+            explanationManager.showExplanationsWithLevel(currentDepth, false, true, time);
         }
     }
 
@@ -212,13 +230,14 @@ public class HybridSolver implements ISolver {
         abd_literals = new Literals(to_abd);
     }
 
-    private void startSolving() throws OWLOntologyStorageException, OWLOntologyCreationException {
+    private void startSolving() throws OWLOntologyCreationException {
+        progressManager.updateProgress(0, "Abduction initialized.");
         currentDepth = 0;
 
         Queue<TreeNode> queue = new LinkedList<>();
         initializeTree(queue);
 
-        if (isTimeout()) {
+        if(isTimeout()) {
             makeTimeoutPartialLog();
             return;
         }
@@ -239,14 +258,7 @@ public class HybridSolver implements ISolver {
                 break;
             }
 
-//            System.out.println("MODEL (data)");
-//            System.out.println(Printer.print(new ArrayList<>(model.data)));
-//            System.out.println("PATH (label)");
-//            System.out.println(Printer.print(new ArrayList<>(model.label)));
-
             for (OWLAxiom child : model.data){
-
-                //System.out.println("Child " + child);
 
                 if(isTimeout()){
                     makeTimeoutPartialLog();
@@ -262,12 +274,10 @@ public class HybridSolver implements ISolver {
                 explanation.addAxiom(child);
                 explanation.setAcquireTime(threadTimes.getTotalUserTimeInSec());
                 explanation.setLevel(currentDepth);
-                //explanation.setLevel(currentDepth + 1);
 
                 path = new HashSet<>(explanation.getOwlAxioms());
 
                 if(canBePruned(explanation)){
-                    //System.out.println("IS PRUNED");
                     path.clear();
                     continue;
                 }
@@ -280,28 +290,27 @@ public class HybridSolver implements ISolver {
                     if(Configuration.MHS_MODE){
                         if(!isOntologyConsistent()){
                             explanation.setDepth(explanation.getOwlAxioms().size());
-                            possibleExplanations.add(explanation);
-                            //System.out.println("IDE O VYSVETLENIE");
+                            explanationManager.addPossibleExplanation(explanation);
                             path.clear();
                             continue;
                         }
                     } else {
                         if (!addNewExplanations()){
                             path.clear();
-                            if (isTimeout()) {
+                            if(isTimeout()){
                                 makeTimeoutPartialLog();
                                 return;
                             }
                             continue;
                         }
-                        if (isTimeout()) {
+                        if(isTimeout()){
                             makeTimeoutPartialLog();
                             return;
                         }
                     }
                 }
                 else{
-                    lenghtOneExplanations = new ArrayList<>();
+                    explanationManager.setLengthOneExplanations(new ArrayList<>());
                 }
                 addNodeToTree(queue, explanation, model);
             }
@@ -309,23 +318,23 @@ public class HybridSolver implements ISolver {
         path.clear();
 
         if(!level_times.containsKey(currentDepth)){
-            //level_times.put(currentDepth, threadTimes.getTotalUserTimeInSec());
             makePartialLog();
         }
         currentDepth = 0;
+        progressManager.updateProgress(100, "Abduction finished.");
     }
 
     private void makePartialLog() {
         Double time = threadTimes.getTotalUserTimeInSec();
         level_times.put(currentDepth, time);
-        explanationsFilter.showExplanationsWithDepth(currentDepth, false, false, time);
+        explanationManager.showExplanationsWithDepth(currentDepth, false, false, time);
         if(!Configuration.MHS_MODE){
-            explanationsFilter.showExplanationsWithLevel(currentDepth, false, false, time);
+            explanationManager.showExplanationsWithLevel(currentDepth, false, false, time);
         }
         pathsInCertainDepth = new HashSet<>();
     }
 
-    private void initializeTree(Queue<TreeNode> queue) throws OWLOntologyStorageException {
+    private void initializeTree(Queue<TreeNode> queue) {
         if(Configuration.MHS_MODE){
             if(!isOntologyConsistent()){
                 return;
@@ -335,7 +344,7 @@ public class HybridSolver implements ISolver {
             for (Explanation e: conflict.getExplanations()){
                 e.setDepth(e.getOwlAxioms().size());
             }
-            possibleExplanations = conflict.getExplanations();
+            explanationManager.setPossibleExplanations(conflict.getExplanations());
         }
 
         ModelNode root = createModelNodeFromExistingModel(true, null, null);
@@ -349,12 +358,12 @@ public class HybridSolver implements ISolver {
         explanation.setDepth(explanation.getOwlAxioms().size());
         if(Configuration.CHECKING_MINIMALITY_BY_QXP){
             Explanation newExplanation = getMinimalExplanationByCallingQXP(explanation);
-            possibleExplanations.add(newExplanation);
+            explanationManager.addPossibleExplanation(newExplanation);
             if(Configuration.CACHED_CONFLICTS_MEDIAN){
                 setDivider.addPairsOfLiteralsToTable(newExplanation);
             }
         } else {
-            possibleExplanations.add(explanation);
+            explanationManager.addPossibleExplanation(explanation);
             if(Configuration.CACHED_CONFLICTS_MEDIAN){
                 setDivider.addPairsOfLiteralsToTable(explanation);
             }
@@ -369,7 +378,7 @@ public class HybridSolver implements ISolver {
         }
         if(!Configuration.MHS_MODE){
             modelNode.add_node_explanations(model);
-            modelNode.add_to_explanations(lenghtOneExplanations);
+            modelNode.add_to_explanations(explanationManager.getLengthOneExplanations());
         }
         queue.add(modelNode);
         path.clear();
@@ -398,6 +407,7 @@ public class HybridSolver implements ISolver {
     private boolean increaseDepth(TreeNode node){
         if (node.depth > currentDepth){
             makePartialLog();
+            progressManager.updateProgress(currentDepth, threadTimes.getTotalUserTimeInSec());
             return true;
         }
         return false;
@@ -406,7 +416,6 @@ public class HybridSolver implements ISolver {
     private boolean isTimeout(){
         if (Configuration.TIMEOUT != null && threadTimes.getTotalUserTimeInSec() > Configuration.TIMEOUT) {
             System.out.println("timeout");
-            //makeTimeoutPartialLog();
             return true;
         }
         return false;
@@ -415,15 +424,15 @@ public class HybridSolver implements ISolver {
     private void makeTimeoutPartialLog() {
         Double time = threadTimes.getTotalUserTimeInSec();
         level_times.put(currentDepth, time);
-        explanationsFilter.showExplanationsWithDepth(currentDepth, true, false, time);
+        explanationManager.showExplanationsWithDepth(currentDepth, true, false, time);
         if(!Configuration.MHS_MODE){
-            explanationsFilter.showExplanationsWithDepth(currentDepth + 1, true, false, time);
-            explanationsFilter.showExplanationsWithLevel(currentDepth, true,false, time);
+            explanationManager.showExplanationsWithDepth(currentDepth + 1, true, false, time);
+            explanationManager.showExplanationsWithLevel(currentDepth, true,false, time);
         }
     }
 
     private boolean canBePruned(Explanation explanation) throws OWLOntologyCreationException {
-        if (!checkRules.isMinimal(possibleExplanations, explanation)){
+        if (!checkRules.isMinimal(explanationManager.getPossibleExplanations(), explanation)){
             return true;
         }
         if(pathsInCertainDepth.contains(path)){
@@ -474,13 +483,13 @@ public class HybridSolver implements ISolver {
 
     private List<Explanation> findExplanations(){
         abd_literals.removeLiterals(path);
-        abd_literals.removeLiterals(lenghtOneExplanations);
+        abd_literals.removeLiterals(explanationManager.getLengthOneExplanations());
         if(Configuration.CACHED_CONFLICTS_LONGEST_CONFLICT){
-            setDivider.setIndexesOfExplanations(possibleExplanations.size());
+            setDivider.setIndexesOfExplanations(explanationManager.getPossibleExplanationsCount());
         }
         Conflict conflict = findConflicts(abd_literals);
         abd_literals.addLiterals(path);
-        abd_literals.addLiterals(lenghtOneExplanations);
+        abd_literals.addLiterals(explanationManager.getLengthOneExplanations());
         return conflict.getExplanations();
     }
 
@@ -517,20 +526,12 @@ public class HybridSolver implements ISolver {
             setDivider.setMedian(median);
         }
 
-//        if (isTimeout()) {
-//            return new Conflict(new Literals(), new LinkedList<>());
-//        }
-
         Conflict conflictC2 = findConflicts(sets.get(1));
         if(Configuration.CACHED_CONFLICTS_LONGEST_CONFLICT){
             setDivider.addIndexToIndexesOfExplanations(indexOfExplanation);
         } else if(Configuration.CACHED_CONFLICTS_MEDIAN){
             setDivider.setMedian(median);
         }
-
-//        if (isTimeout()) {
-//            return new Conflict(new Literals(), new LinkedList<>());
-//        }
 
         List<Explanation> explanations = new LinkedList<>();
         explanations.addAll(conflictC1.getExplanations());
@@ -541,7 +542,9 @@ public class HybridSolver implements ISolver {
         conflictLiterals.getOwlAxioms().addAll(conflictC2.getLiterals().getOwlAxioms());
 
         while (!isOntologyWithLiteralsConsistent(conflictLiterals.getOwlAxioms())) {
+
             if (isTimeout()) break;
+
             path.addAll(conflictC2.getLiterals().getOwlAxioms());
             Explanation X = getConflict(conflictC2.getLiterals().getOwlAxioms(), conflictC1.getLiterals(), path);
             path.removeAll(conflictC2.getLiterals().getOwlAxioms());
@@ -574,9 +577,11 @@ public class HybridSolver implements ISolver {
     }
 
     private Explanation getConflict(Collection<OWLAxiom> axioms, Literals literals, Set<OWLAxiom> actualPath) {
+
         if (isTimeout()) {
             return new Explanation();
         }
+
         if (!axioms.isEmpty() && !isOntologyConsistent()) {
             return new Explanation();
         }
@@ -614,25 +619,25 @@ public class HybridSolver implements ISolver {
 
     private boolean addNewExplanations(){
         List<Explanation> newExplanations = findExplanations();
-        lenghtOneExplanations = new ArrayList<>();
+        explanationManager.setLengthOneExplanations(new ArrayList<>());
         for (Explanation conflict : newExplanations){
             if (conflict.getOwlAxioms().size() == 1){
-                lenghtOneExplanations.add(Iterables.get(conflict.getOwlAxioms(), 0));
+                explanationManager.addLengthOneExplanation(Iterables.get(conflict.getOwlAxioms(), 0));
             }
             conflict.addAxioms(path);
-            if (checkRules.isMinimal(possibleExplanations, conflict)){
+            if (checkRules.isMinimal(explanationManager.getPossibleExplanations(), conflict)){
                 Explanation newExplanation = conflict;
                 if(Configuration.CHECKING_MINIMALITY_BY_QXP){
                     newExplanation = getMinimalExplanationByCallingQXP(conflict);
                 }
                 newExplanation.setDepth(newExplanation.getOwlAxioms().size());
-                possibleExplanations.add(newExplanation);
+                explanationManager.addPossibleExplanation(newExplanation);
                 if(Configuration.CACHED_CONFLICTS_MEDIAN){
                     setDivider.addPairsOfLiteralsToTable(newExplanation);
                 }
             }
         }
-        if (newExplanations.size() == this.lenghtOneExplanations.size()){
+        if (newExplanations.size() == explanationManager.getLengthOneExplanationsCount()){
             return false;
         }
         return !newExplanations.isEmpty();
@@ -646,12 +651,12 @@ public class HybridSolver implements ISolver {
     }
 
     private boolean isOntologyConsistent(){
-        return modelExtractor.getNegModelByOntology().modelIsValid;
+        ModelNode node = modelExtractor.getNegModelByOntology();
+        return node.modelIsValid;
     }
 
     public Explanation getMinimalExplanationByCallingQXP(Explanation explanation){
-        Set<OWLAxiom> temp = new HashSet<>();
-        temp.addAll(explanation.getOwlAxioms());
+        Set<OWLAxiom> temp = new HashSet<>(explanation.getOwlAxioms());
         if(path != null){
             temp.addAll(path);
         }
