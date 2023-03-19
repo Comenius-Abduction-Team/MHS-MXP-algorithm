@@ -41,7 +41,6 @@ public class HybridSolver implements ISolver {
     public List<OWLAxiom> assertionsAxioms;
     public List<OWLAxiom> negAssertionsAxioms;
     public Set<OWLAxiom> path = new HashSet<>();
-    //public List<OWLAxiom> path;
     public Set<OWLAxiom> pathDuringCheckingMinimality;
     public Abducibles abducibles;
     public int lastUsableModelIndex;
@@ -56,6 +55,7 @@ public class HybridSolver implements ISolver {
     public HybridSolver(ThreadTimes threadTimes, long currentTimeMillis,
                         ConsoleExplanationManager explanationManager, ConsoleProgressManager progressManager) {
 
+        System.out.println();
         System.out.println(String.join("\n", getInfo()));
         System.out.println();
 
@@ -117,24 +117,21 @@ public class HybridSolver implements ISolver {
         initialize();
 
         String message = null;
+
         if (!reasonerManager.isOntologyConsistent()) {
             message = "MESSAGE: nothing to explain";
             explanationManager.processExplanations(message);
         }
+
  /*       else if (reasonerManager.isOntologyWithLiteralsConsistent(abd_literals.getOwlAxioms(), ontology)) {
             //tato pociatocna podmienka v MHS-MXP algoritme nevystupuje
             message = "MESSAGE: no conflicts, consistent with abducibles";
             makeFinalLog(message);
         }*/
+
         else {
-//            System.out.println("preslo podmienkami");
             trySolve();
         }
-
-//        for(ModelNode m : models){
-//            System.out.println(Printer.print(new ArrayList<>(m.data)));
-//        }
-//        System.out.println(models.size());
 
         explanationManager.processExplanations(message);
     }
@@ -186,6 +183,7 @@ public class HybridSolver implements ISolver {
         }
 
         for(OWLClass owlClass : abducibles.getClasses()){
+            if (owlClass.isTopEntity() || owlClass.isBottomEntity()) continue;
             List<OWLAxiom> classAssertionAxiom = AxiomManager.createClassAssertionAxiom(loader, owlClass);
             for (int i = 0; i < classAssertionAxiom.size(); i++) {
                 if (i % 2 == 0) {
@@ -198,6 +196,7 @@ public class HybridSolver implements ISolver {
 
         if(Configuration.ROLES_IN_EXPLANATIONS_ALLOWED){
             for(OWLObjectProperty objectProperty : abducibles.getRoles()){
+                if (objectProperty.isTopEntity() || objectProperty.isBottomEntity()) continue;
                 List<OWLAxiom> objectPropertyAssertionAxiom = AxiomManager.createObjectPropertyAssertionAxiom(loader, objectProperty);
                 for (int i = 0; i < objectPropertyAssertionAxiom.size(); i++) {
                     if (i % 2 == 0) {
@@ -238,6 +237,11 @@ public class HybridSolver implements ISolver {
         Queue<TreeNode> queue = new LinkedList<>();
         initializeTree(queue);
 
+        if(isTimeout()) {
+            makeTimeoutPartialLog();
+            return;
+        }
+
         while (!queue.isEmpty()) {
             TreeNode node = queue.poll();
 
@@ -245,6 +249,7 @@ public class HybridSolver implements ISolver {
                 currentDepth++;
             }
             if(isTimeout() || !ModelNode.class.isAssignableFrom(node.getClass())){
+                makeTimeoutPartialLog();
                 break;
             }
 
@@ -253,16 +258,10 @@ public class HybridSolver implements ISolver {
                 break;
             }
 
-            //System.out.println("MODEL");
-            //printAxioms(new ArrayList<>(model.data));
-            ///System.out.println("PATH");
-            //printAxioms(new ArrayList<>(model.label));
-
             for (OWLAxiom child : model.data){
 
-                //System.out.println("Child " + child);
-
                 if(isTimeout()){
+                    makeTimeoutPartialLog();
                     return;
                 }
 
@@ -275,32 +274,38 @@ public class HybridSolver implements ISolver {
                 explanation.addAxiom(child);
                 explanation.setAcquireTime(threadTimes.getTotalUserTimeInSec());
                 explanation.setLevel(currentDepth);
-                //explanation.setLevel(currentDepth + 1);
 
                 path = new HashSet<>(explanation.getOwlAxioms());
 
                 if(canBePruned(explanation)){
-                    //System.out.println("IS PRUNED");
                     path.clear();
                     continue;
                 }
 
                 if (!Configuration.REUSE_OF_MODELS || !usableModelInModels()) {
                     if(isTimeout()){
+                        makeTimeoutPartialLog();
                         return;
                     }
                     if(Configuration.MHS_MODE){
                         if(!isOntologyConsistent()){
                             explanation.setDepth(explanation.getOwlAxioms().size());
                             explanationManager.addPossibleExplanation(explanation);
-                            //System.out.println("IDE O VYSVETLENIE");
                             path.clear();
                             continue;
                         }
                     } else {
                         if (!addNewExplanations()){
                             path.clear();
+                            if(isTimeout()){
+                                makeTimeoutPartialLog();
+                                return;
+                            }
                             continue;
+                        }
+                        if(isTimeout()){
+                            makeTimeoutPartialLog();
+                            return;
                         }
                     }
                 }
@@ -572,6 +577,11 @@ public class HybridSolver implements ISolver {
     }
 
     private Explanation getConflict(Collection<OWLAxiom> axioms, Literals literals, Set<OWLAxiom> actualPath) {
+
+        if (isTimeout()) {
+            return new Explanation();
+        }
+
         if (!axioms.isEmpty() && !isOntologyConsistent()) {
             return new Explanation();
         }
