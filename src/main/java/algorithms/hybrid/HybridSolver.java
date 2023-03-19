@@ -313,16 +313,20 @@ public class HybridSolver implements ISolver {
         path.clear();
 
         if(!level_times.containsKey(currentDepth)){
-            Double time = threadTimes.getTotalUserTimeInSec();
-            level_times.put(currentDepth, time);
-            explanationManager.showExplanationsWithDepth(currentDepth, false, time);
-            if(!Configuration.MHS_MODE){
-                explanationManager.showExplanationsWithLevel(currentDepth, false, time);
-            }
-            pathsInCertainDepth = new HashSet<>();
+            makePartialLog();
         }
         currentDepth = 0;
         progressManager.updateProgress(100, "Abduction finished.");
+    }
+
+    private void makePartialLog() {
+        Double time = threadTimes.getTotalUserTimeInSec();
+        level_times.put(currentDepth, time);
+        explanationManager.showExplanationsWithDepth(currentDepth, false, false, time);
+        if(!Configuration.MHS_MODE){
+            explanationManager.showExplanationsWithLevel(currentDepth, false, false, time);
+        }
+        pathsInCertainDepth = new HashSet<>();
     }
 
     private void initializeTree(Queue<TreeNode> queue) {
@@ -397,14 +401,8 @@ public class HybridSolver implements ISolver {
 
     private boolean increaseDepth(TreeNode node){
         if (node.depth > currentDepth){
-            Double time = threadTimes.getTotalUserTimeInSec();
-            level_times.put(currentDepth, time);
-            explanationManager.showExplanationsWithDepth(currentDepth, false, time);
-            if(!Configuration.MHS_MODE){
-                explanationManager.showExplanationsWithLevel(currentDepth, false, time);
-            }
-            progressManager.updateProgress(currentDepth, time);
-            pathsInCertainDepth = new HashSet<>();
+            makePartialLog();
+            progressManager.updateProgress(currentDepth, threadTimes.getTotalUserTimeInSec());
             return true;
         }
         return false;
@@ -413,16 +411,19 @@ public class HybridSolver implements ISolver {
     private boolean isTimeout(){
         if (Configuration.TIMEOUT != null && threadTimes.getTotalUserTimeInSec() > Configuration.TIMEOUT) {
             System.out.println("timeout");
-            Double time = threadTimes.getTotalUserTimeInSec();
-            level_times.put(currentDepth, time);
-            explanationManager.showExplanationsWithDepth(currentDepth, true, time);
-            if(!Configuration.MHS_MODE){
-               explanationManager.showExplanationsWithDepth(currentDepth + 1, true, time);
-               explanationManager.showExplanationsWithLevel(currentDepth, true, time);
-            }
             return true;
         }
         return false;
+    }
+
+    private void makeTimeoutPartialLog() {
+        Double time = threadTimes.getTotalUserTimeInSec();
+        level_times.put(currentDepth, time);
+        explanationManager.showExplanationsWithDepth(currentDepth, true, false, time);
+        if(!Configuration.MHS_MODE){
+            explanationManager.showExplanationsWithDepth(currentDepth + 1, true, false, time);
+            explanationManager.showExplanationsWithLevel(currentDepth, true,false, time);
+        }
     }
 
     private boolean canBePruned(Explanation explanation) throws OWLOntologyCreationException {
@@ -490,6 +491,11 @@ public class HybridSolver implements ISolver {
     private Conflict findConflicts(Literals literals) {
         path.remove(negObservation);
         reasonerManager.addAxiomsToOntology(path);
+
+        if (isTimeout()) {
+            return new Conflict(new Literals(), new LinkedList<>());
+        }
+
         if (isOntologyWithLiteralsConsistent(literals.getOwlAxioms())) {
             return new Conflict(literals, new LinkedList<>());
         }
@@ -531,6 +537,9 @@ public class HybridSolver implements ISolver {
         conflictLiterals.getOwlAxioms().addAll(conflictC2.getLiterals().getOwlAxioms());
 
         while (!isOntologyWithLiteralsConsistent(conflictLiterals.getOwlAxioms())) {
+
+            if (isTimeout()) break;
+
             path.addAll(conflictC2.getLiterals().getOwlAxioms());
             Explanation X = getConflict(conflictC2.getLiterals().getOwlAxioms(), conflictC1.getLiterals(), path);
             path.removeAll(conflictC2.getLiterals().getOwlAxioms());
@@ -545,7 +554,7 @@ public class HybridSolver implements ISolver {
             X.getOwlAxioms().stream().findFirst().ifPresent(axiom -> conflictC1.getLiterals().getOwlAxioms().remove(axiom));
             conflictLiterals.getOwlAxioms().addAll(conflictC1.getLiterals().getOwlAxioms());
 
-            if (explanations.contains(CS)) {
+            if (explanations.contains(CS) || isTimeout()) {
                 break;
             }
 
