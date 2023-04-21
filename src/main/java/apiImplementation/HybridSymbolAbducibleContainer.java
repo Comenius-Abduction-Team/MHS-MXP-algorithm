@@ -6,8 +6,8 @@ import models.Abducibles;
 import org.semanticweb.owlapi.model.*;
 import reasoner.ILoader;
 
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class HybridSymbolAbducibleContainer extends HybridAbducibleContainer
@@ -31,17 +31,12 @@ public class HybridSymbolAbducibleContainer extends HybridAbducibleContainer
         else if (type == EntityType.OBJECT_PROPERTY){
             roles.add((OWLObjectProperty)symbol);
         }
-        else throw new SymbolAbducibleException("symbol " + symbol + " of type: " + type);
+        else throw new SymbolAbducibleException(symbol);
     }
 
     @Override
-    public void addSymbols(Set<OWLEntity> symbols) throws SymbolAbducibleException {
+    public void addSymbols(Collection<OWLEntity> symbols) throws SymbolAbducibleException {
         symbols.forEach(this::addSymbol);
-    }
-
-    @Override
-    public void addSymbols(List<OWLEntity> symbols) throws SymbolAbducibleException {
-        new HashSet<>(symbols).forEach(this::addSymbol);
     }
 
     @Override

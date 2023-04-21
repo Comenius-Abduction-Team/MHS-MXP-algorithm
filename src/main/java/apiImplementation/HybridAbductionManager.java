@@ -68,9 +68,7 @@ public class HybridAbductionManager implements
     }
 
     private void throwInvalidObservationException(OWLAxiom axiom){
-        throw new InvalidObservationException(
-                "Axiom " + axiom + " has invalid type for an observation: " + axiom.getAxiomType()
-        );
+        throw new InvalidObservationException(axiom);
     }
 
     private boolean checkObservationType(OWLAxiom axiom){
@@ -130,10 +128,10 @@ public class HybridAbductionManager implements
                             i++;
                             continue;
                         default:
-                            throw new InvalidSolverSettingException("Unknown solver argument:" + arguments[i]);
+                            throw new InvalidSolverSettingException(arguments[i], "Unknown solver argument");
                     }
                 } catch(NumberFormatException e){
-                    throw new InvalidSolverSettingException("Invalid integer value:" + arguments[i+1]);
+                    throw new InvalidSolverSettingException(arguments[i+1], "Invalid integer value");
                 }
             }
     }
@@ -176,15 +174,24 @@ public class HybridAbductionManager implements
     }
 
     private void setSolverConfiguration(){
-        if (depth > 0) Configuration.DEPTH = depth;
+
         Configuration.MHS_MODE = pureMHS;
+
+        if (depth > 0) Configuration.DEPTH = depth;
         if (timeout > 0) Configuration.TIMEOUT = (long) timeout;
+
+        if (abducibles == null)
+            return;
+
+        Configuration.LOOPING_ALLOWED = abducibles.areLoopsAllowed();
+        Configuration.ROLES_IN_EXPLANATIONS_ALLOWED = abducibles.areRoleAssertionsAllowed();
+        Configuration.NEGATION_ALLOWED = abducibles.areConceptComplementsAllowed();
     }
 
 
     @Override
-    public void getExplanationsIncrementally() {
-        ThreadAbductionManager.super.getExplanationsIncrementally();
+    public void getExplanationsAsynchronously() {
+        ThreadAbductionManager.super.getExplanationsAsynchronously();
     }
 
     @Override

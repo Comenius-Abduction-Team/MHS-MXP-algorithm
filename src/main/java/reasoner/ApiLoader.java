@@ -57,7 +57,7 @@ public class ApiLoader extends Loader {
     @Override
     protected void loadAbducibles(){
         HybridAbducibleContainer container = abductionManager.getAbducibles();
-        if (container.isEmpty()){
+        if (container == null || container.isEmpty()){
             abducibles = new Abducibles(this);
             return;
         }

@@ -7,8 +7,8 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import reasoner.ILoader;
 
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class HybridAxiomAbducibleContainer
@@ -29,17 +29,12 @@ public class HybridAxiomAbducibleContainer
         )
             axioms.add(axiom);
         else
-            throw new AxiomAbducibleException("axiom " + axiom + " of type: " + type);
+            throw new AxiomAbducibleException(axiom);
     }
 
     @Override
-    public void addAxioms(Set<OWLAxiom> axioms) throws AxiomAbducibleException {
+    public void addAxioms(Collection<OWLAxiom> axioms) throws AxiomAbducibleException {
         axioms.forEach(this::addAxiom);
-    }
-
-    @Override
-    public void addAxioms(List<OWLAxiom> axioms) throws AxiomAbducibleException {
-        new HashSet<>(axioms).forEach(this::addAxiom);
     }
 
     @Override
