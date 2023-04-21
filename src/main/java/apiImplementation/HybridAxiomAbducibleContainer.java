@@ -3,6 +3,7 @@ package apiImplementation;
 import abductionapi.abducibles.*;
 import abductionapi.exception.AxiomAbducibleException;
 import models.Abducibles;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import reasoner.ILoader;
 
@@ -19,8 +20,16 @@ public class HybridAxiomAbducibleContainer
     HybridAxiomAbducibleContainer(){}
 
     @Override
-    public void addAxiom(OWLAxiom assertion) throws AxiomAbducibleException {
-            axioms.add(assertion);
+    public void addAxiom(OWLAxiom axiom) throws AxiomAbducibleException {
+        AxiomType<?> type = axiom.getAxiomType();
+        if (
+                type == AxiomType.CLASS_ASSERTION
+                || type == AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION
+                || type == AxiomType.OBJECT_PROPERTY_ASSERTION
+        )
+            axioms.add(axiom);
+        else
+            throw new AxiomAbducibleException("axiom " + axiom + " of type: " + type);
     }
 
     @Override
@@ -36,5 +45,10 @@ public class HybridAxiomAbducibleContainer
     @Override
     public Abducibles exportAbducibles(ILoader loader) {
         return new Abducibles(loader, axioms);
+    }
+
+    @Override
+    public boolean isEmpty(){
+        return axioms.isEmpty();
     }
 }

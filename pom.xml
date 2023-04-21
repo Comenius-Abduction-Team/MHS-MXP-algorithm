@@ -78,7 +78,7 @@
        <dependency>
             <groupId>com.github.Comenius-Abduction-Team</groupId>
             <artifactId>DL-Abduction-API</artifactId>
-            <version>c55a2d5907</version>
+            <version>028b657e04</version>
         </dependency>
     </dependencies>
 

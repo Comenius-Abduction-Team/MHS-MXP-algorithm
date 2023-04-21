@@ -3,10 +3,7 @@ package apiImplementation;
 import abductionapi.abducibles.SymbolAbducibleContainer;
 import abductionapi.exception.SymbolAbducibleException;
 import models.Abducibles;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.*;
 import reasoner.ILoader;
 
 import java.util.HashSet;
@@ -24,16 +21,17 @@ public class HybridSymbolAbducibleContainer extends HybridAbducibleContainer
 
     @Override
     public void addSymbol(OWLEntity symbol) throws SymbolAbducibleException {
-        if (symbol instanceof OWLClass){
+        EntityType<?> type = symbol.getEntityType();
+        if (type == EntityType.CLASS){
             classes.add((OWLClass)symbol);
         }
-        else if (symbol instanceof OWLNamedIndividual){
+        else if (type == EntityType.NAMED_INDIVIDUAL){
             individuals.add((OWLNamedIndividual)symbol);
         }
-        else if (symbol instanceof OWLObjectProperty){
+        else if (type == EntityType.OBJECT_PROPERTY){
             roles.add((OWLObjectProperty)symbol);
         }
-        else throw new SymbolAbducibleException(symbol.getEntityType().toString());
+        else throw new SymbolAbducibleException("symbol " + symbol + " of type: " + type);
     }
 
     @Override
@@ -49,5 +47,10 @@ public class HybridSymbolAbducibleContainer extends HybridAbducibleContainer
     @Override
     public Abducibles exportAbducibles(ILoader loader) {
         return new Abducibles(loader, individuals, classes, roles);
+    }
+
+    @Override
+    public boolean isEmpty(){
+        return individuals.isEmpty() || (classes.isEmpty() && roles.isEmpty());
     }
 }

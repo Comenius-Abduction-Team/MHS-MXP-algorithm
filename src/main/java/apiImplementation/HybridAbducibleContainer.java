@@ -63,4 +63,6 @@ public abstract class HybridAbducibleContainer
     public boolean areLoopsAllowed() throws NotSupportedException {
         return Configuration.LOOPING_ALLOWED;
     }
+
+    public abstract boolean isEmpty();
 }

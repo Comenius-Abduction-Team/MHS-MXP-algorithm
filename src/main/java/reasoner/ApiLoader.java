@@ -1,5 +1,7 @@
 package reasoner;
 
+import abductionapi.abducibles.AxiomAbducibleContainer;
+import apiImplementation.HybridAbducibleContainer;
 import apiImplementation.HybridAbductionManager;
 import models.Abducibles;
 import models.Individuals;
@@ -54,8 +56,13 @@ public class ApiLoader extends Loader {
 
     @Override
     protected void loadAbducibles(){
-        abducibles = abductionManager.getAbducibles().exportAbducibles(this);
-        if (abducibles.noAbduciblesSpecified())
+        HybridAbducibleContainer container = abductionManager.getAbducibles();
+        if (container.isEmpty()){
             abducibles = new Abducibles(this);
+            return;
+        }
+        if (abductionManager.getAbducibles() instanceof AxiomAbducibleContainer)
+            isAxiomBasedAbduciblesOnInput = true;
+        abducibles = abductionManager.getAbducibles().exportAbducibles(this);
     }
 }

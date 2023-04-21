@@ -1,3 +1,5 @@
+import abductionapi.abducibles.AxiomAbducibleContainer;
+import abductionapi.abducibles.SymbolAbducibleContainer;
 import abductionapi.manager.AbductionManager;
 import abductionapi.manager.ExplanationWrapper;
 import algorithms.ISolver;
@@ -20,7 +22,7 @@ import java.util.Set;
 public class Main {
 
     /** whether the solver is being run from an IDE*/
-    private static final boolean TESTING = true;
+    private static final boolean TESTING = false;
     /** whether the solver is being run from an IDE through the API*/
     private static final boolean API = true;
 
@@ -178,9 +180,12 @@ public class Main {
                     dataFactory.getOWLObjectIntersectionOf(A,C,E), a);
 
             AbductionManager abductionManager = factory.getAbductionManagerWithInput(ont, classAssertion);
-            abductionManager.setAbducibles(factory.getSymbolAbducibleContainer());
+            AxiomAbducibleContainer container = factory.getAxiomAbducibleContainer();
+            //container.addAxiom(dataFactory.getOWLClassAssertionAxiom(E,a));
+            //container.addAxiom(dataFactory.getOWLClassAssertionAxiom(C,a));
+            abductionManager.setAbducibles(container);
             Set<ExplanationWrapper> explanations = abductionManager.getExplanations();
-            explanations.forEach(e -> System.out.println(e.getExplanationSet()));
+            explanations.forEach(e -> System.out.println(e.getTextRepresentation()));
 
             return;
 

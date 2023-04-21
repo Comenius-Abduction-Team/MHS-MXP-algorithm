@@ -93,6 +93,8 @@ public class Explanation {
     }
 
     public ExplanationWrapper createExplanationWrapper(){
-        return new ExplanationWrapper(new HashSet<>(owlAxioms));
+        ExplanationWrapper wrapper = new ExplanationWrapper(new HashSet<>(owlAxioms));
+        wrapper.setTextRepresentation(toString());
+        return wrapper;
     }
 }

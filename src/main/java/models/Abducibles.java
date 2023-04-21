@@ -14,11 +14,11 @@ import java.util.Set;
 public class Abducibles {
 
     private Set<OWLNamedIndividual> individuals;
-    private Set<OWLClass> classes;
-    private Set<OWLObjectProperty> roles;
-    private Set<OWLAxiom> axioms;
+    private Set<OWLClass> classes = new HashSet<>();
+    private Set<OWLObjectProperty> roles = new HashSet<>();
+    private Set<OWLAxiom> axioms = new HashSet<>();
     private ILoader loader;
-    private Set<OWLAxiom> axiomBasedAbducibles;
+    private Set<OWLAxiom> axiomBasedAbducibles = new HashSet<>();
 
     public Abducibles(ILoader loader) {
         this.individuals = new HashSet<>(loader.getOntology().getIndividualsInSignature());
