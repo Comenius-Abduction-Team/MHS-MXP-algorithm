@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>masterThesis</groupId>
-    <artifactId>abduction</artifactId>
+    <groupId>sk.uniba.fmph.dai</groupId>
+    <artifactId>mhs_mxp</artifactId>
     <version>1.0.0</version>
 
 <!--    <packaging>jar</packaging>-->
@@ -98,7 +98,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.1.1</version>
                 <configuration>
-                    <finalName>mhs-mxp</finalName>
+                    <finalName>mhs_mxp</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
