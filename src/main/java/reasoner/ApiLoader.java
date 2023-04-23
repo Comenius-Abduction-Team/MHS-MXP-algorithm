@@ -1,6 +1,6 @@
 package reasoner;
 
-import abductionapi.abducibles.AxiomAbducibleContainer;
+import abduction_api.abducibles.AxiomAbducibleContainer;
 import apiImplementation.HybridAbducibleContainer;
 import apiImplementation.HybridAbductionManager;
 import models.Abducibles;

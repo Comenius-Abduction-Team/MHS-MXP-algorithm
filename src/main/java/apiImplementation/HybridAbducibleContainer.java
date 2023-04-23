@@ -1,7 +1,7 @@
 package apiImplementation;
 
-import abductionapi.abducibles.*;
-import abductionapi.exception.NotSupportedException;
+import abduction_api.abducibles.*;
+import abduction_api.exception.NotSupportedException;
 import models.Abducibles;
 import reasoner.ILoader;
 

@@ -1,9 +1,9 @@
 package apiImplementation;
 
-import abductionapi.abducibles.AxiomAbducibleContainer;
-import abductionapi.abducibles.SymbolAbducibleContainer;
-import abductionapi.factories.AbductionFactory;
-import abductionapi.manager.AbductionManager;
+import abduction_api.abducibles.AxiomAbducibleContainer;
+import abduction_api.abducibles.SymbolAbducibleContainer;
+import abduction_api.factories.AbductionFactory;
+import abduction_api.manager.AbductionManager;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntology;

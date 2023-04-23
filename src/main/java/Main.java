@@ -1,7 +1,7 @@
-import abductionapi.abducibles.AxiomAbducibleContainer;
-import abductionapi.abducibles.SymbolAbducibleContainer;
-import abductionapi.manager.AbductionManager;
-import abductionapi.manager.ExplanationWrapper;
+import abduction_api.abducibles.AxiomAbducibleContainer;
+import abduction_api.abducibles.SymbolAbducibleContainer;
+import abduction_api.manager.AbductionManager;
+import abduction_api.manager.ExplanationWrapper;
 import algorithms.ISolver;
 import algorithms.hybrid.ConsoleExplanationManager;
 import algorithms.hybrid.HybridSolver;
