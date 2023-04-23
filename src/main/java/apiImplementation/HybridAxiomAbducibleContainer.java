@@ -1,7 +1,7 @@
 package apiImplementation;
 
-import abductionapi.abducibles.*;
-import abductionapi.exception.AxiomAbducibleException;
+import abduction_api.abducibles.*;
+import abduction_api.exception.AxiomAbducibleException;
 import models.Abducibles;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;

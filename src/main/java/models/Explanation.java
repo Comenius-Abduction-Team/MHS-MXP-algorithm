@@ -1,6 +1,6 @@
 package models;
 
-import abductionapi.manager.ExplanationWrapper;
+import abduction_api.manager.ExplanationWrapper;
 import common.Printer;
 import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.model.OWLAxiom;

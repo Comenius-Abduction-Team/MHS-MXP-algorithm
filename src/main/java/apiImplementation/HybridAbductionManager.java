@@ -1,14 +1,14 @@
 package apiImplementation;
 
-import abductionapi.abducibles.AbducibleContainer;
-import abductionapi.exception.InvalidObservationException;
-import abductionapi.exception.InvalidSolverSettingException;
-import abductionapi.exception.MultiObservationException;
-import abductionapi.manager.AbductionManager;
-import abductionapi.manager.ExplanationWrapper;
-import abductionapi.manager.MultiObservationManager;
-import abductionapi.manager.ThreadAbductionManager;
-import abductionapi.monitors.AbductionMonitor;
+import abduction_api.abducibles.AbducibleContainer;
+import abduction_api.exception.InvalidObservationException;
+import abduction_api.exception.InvalidSolverSettingException;
+import abduction_api.exception.MultiObservationException;
+import abduction_api.manager.AbductionManager;
+import abduction_api.manager.ExplanationWrapper;
+import abduction_api.manager.MultiObservationManager;
+import abduction_api.manager.ThreadAbductionManager;
+import abduction_api.monitors.AbductionMonitor;
 import algorithms.hybrid.ApiExplanationManager;
 import algorithms.hybrid.HybridSolver;
 import common.Configuration;
