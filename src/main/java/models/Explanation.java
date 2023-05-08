@@ -1,7 +1,7 @@
 package models;
 
 import abduction_api.manager.ExplanationWrapper;
-import common.Printer;
+import common.StringFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
@@ -71,7 +71,7 @@ public class Explanation {
         List<String> result = new ArrayList<>();
 
         for (OWLAxiom owlAxiom : owlAxioms) {
-            result.add(Printer.print(owlAxiom));
+            result.add(StringFactory.getRepresentation(owlAxiom));
         }
 
         return "{" + StringUtils.join(result, ",") + "}";

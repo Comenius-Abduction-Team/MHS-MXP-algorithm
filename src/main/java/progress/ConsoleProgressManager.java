@@ -3,7 +3,7 @@ package progress;
 public class ConsoleProgressManager extends ProgressManager {
 
     protected void processProgress(){
-        StringBuilder builder = buildProgressBar(currentProgress, message);
+        StringBuilder builder = buildProgressBar(currentProgressBlocks, message);
         System.out.println(builder);
     }
 

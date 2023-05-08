@@ -1,4 +1,4 @@
-package apiImplementation;
+package api_implementation;
 
 import abduction_api.abducibles.AbducibleContainer;
 import abduction_api.exception.InvalidObservationException;
@@ -11,8 +11,9 @@ import abduction_api.manager.ThreadAbductionManager;
 import abduction_api.monitors.AbductionMonitor;
 import algorithms.hybrid.ApiExplanationManager;
 import algorithms.hybrid.HybridSolver;
+import common.ApiPrinter;
 import common.Configuration;
-import fileLogger.FileLogger;
+import file_logger.FileLogger;
 import models.Explanation;
 import org.semanticweb.owlapi.model.*;
 import progress.ApiProgressManager;
@@ -22,27 +23,38 @@ import timer.ThreadTimes;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class HybridAbductionManager implements
+public class MhsMxpAbductionManager implements
         AbductionManager,
         MultiObservationManager,
         ThreadAbductionManager {
 
-    HybridAbducibleContainer abducibles;
-    OWLOntology ontology;
+    MhsMxpAbducibleContainer abducibles;
+    OWLOntology backgroundKnowledge;
     Set<OWLAxiom> observations;
     double timeout = 0;
     int depth = 0;
-    boolean pureMHS = false;
-    Set<ExplanationWrapper> explanations;
-    AbductionMonitor abductionMonitor;
+    boolean pureMhs = false;
+    boolean strictRelevance = true;
+
+    public boolean isMultithread() {
+        return multithread;
+    }
+
+    boolean multithread = false;
+    Set<ExplanationWrapper> explanations = new HashSet<>();
+    final AbductionMonitor abductionMonitor = new AbductionMonitor();
     HybridSolver solver;
     ApiLoader loader;
     ReasonerManager reasonerManager;
     ThreadTimes timer;
+    String message = "";
+    StringBuilder logs = new StringBuilder();
 
-    HybridAbductionManager(){
+    MhsMxpAbductionManager(){
         FileLogger.initializeLogger();
     }
+
+
 
     public void setExplanations(Collection<Explanation> explanations){
         this.explanations = explanations.stream()
@@ -51,13 +63,13 @@ public class HybridAbductionManager implements
     }
 
     @Override
-    public void setKnowledgeBase(OWLOntology ontology) {
-        this.ontology = ontology;
+    public void setBackgroundKnowledge(OWLOntology ontology) {
+        backgroundKnowledge = ontology;
     }
 
     @Override
-    public OWLOntology getKnowledgeBase() {
-        return ontology;
+    public OWLOntology getBackgroundKnowledge() {
+        return backgroundKnowledge;
     }
 
     @Override
@@ -114,17 +126,26 @@ public class HybridAbductionManager implements
     }
 
     @Override
-    public void setAdditionalSolverSettings(String s) {
+    public void setSolverSpecificParameters(String s) {
+        if (s.equals(""))
+            return;
         String[] arguments = s.split(" ");
             for (int i = 0; i < arguments.length; i++){
                 try {
                     switch (arguments[i]) {
                         case "-d":
-                            depth = Integer.parseInt(arguments[i + 1]);
+                            int depth = Integer.parseInt(arguments[i + 1]);
+                            setDepth(depth);
                             i++;
                             continue;
                         case "-mhs":
-                            pureMHS = Boolean.parseBoolean(arguments[i + 1]);
+                            boolean pureMhs = Boolean.parseBoolean(arguments[i + 1]);
+                            setPureMhs(pureMhs);
+                            i++;
+                            continue;
+                        case "-sR":
+                            boolean strictRelevance = Boolean.parseBoolean(arguments[i + 1]);
+                            setStrictRelevance(strictRelevance);
                             i++;
                             continue;
                         default:
@@ -137,15 +158,23 @@ public class HybridAbductionManager implements
     }
 
     @Override
-    public Set<ExplanationWrapper> getExplanations() {
+    public void resetSolverSpecificParameters() {
+        setDepth(0);
+        setPureMhs(false);
+        setStrictRelevance(true);
+    }
 
+    @Override
+    public void solveAbduction() {
+        clearResults();
         setupSolver();
-        try {
-            solver.solve(loader, reasonerManager);
-        } catch (OWLOntologyCreationException | OWLOntologyStorageException e) {
-            e.printStackTrace();
-        }
-        return explanations;
+        solve();
+    }
+
+    private void clearResults() {
+        explanations = new HashSet<>();
+        message = "";
+        logs = new StringBuilder();
     }
 
     private void setupSolver(){
@@ -167,15 +196,40 @@ public class HybridAbductionManager implements
         timer.start();
         long currentTimeMillis = System.currentTimeMillis();
 
-        solver = new HybridSolver(timer, currentTimeMillis, explanationManager, progressManager);
+        solver = new HybridSolver(timer, currentTimeMillis, explanationManager, progressManager,
+                new ApiPrinter(this));
 
         setSolverConfiguration();
 
     }
 
+    private void solve(){
+        try {
+            solver.solve(loader, reasonerManager);
+        } catch (Exception e) {
+            message = e.getMessage();
+        }
+    }
+
+    @Override
+    public Set<ExplanationWrapper> getExplanations() {
+        return explanations;
+    }
+
+    @Override
+    public String getOutputMessage() {
+        return message;
+    }
+
+    @Override
+    public String getFullLog() {
+        return logs.toString();
+    }
+
     private void setSolverConfiguration(){
 
-        Configuration.MHS_MODE = pureMHS;
+        Configuration.MHS_MODE = pureMhs;
+        Configuration.STRICT_RELEVANCE = strictRelevance;
 
         if (depth > 0) Configuration.DEPTH = depth;
         if (timeout > 0) Configuration.TIMEOUT = (long) timeout;
@@ -190,33 +244,62 @@ public class HybridAbductionManager implements
 
 
     @Override
-    public void getExplanationsAsynchronously() {
-        ThreadAbductionManager.super.getExplanationsAsynchronously();
-    }
-
-    @Override
-    public String getOutputAdditionalInfo() {
-        return null;
-    }
-
-    @Override
-    public void setAbducibles(AbducibleContainer abducibles) {
-        if (! (abducibles instanceof HybridAbducibleContainer))
+    public void setAbducibleContainer(AbducibleContainer abducibles) {
+        if (! (abducibles instanceof MhsMxpAbducibleContainer))
             return;
-        this.abducibles = (HybridAbducibleContainer) abducibles;
+        this.abducibles = (MhsMxpAbducibleContainer) abducibles;
     }
 
     @Override
-    public HybridAbducibleContainer getAbducibles() {
+    public MhsMxpAbducibleContainer getAbducibleContainer() {
         return abducibles;
     }
 
     @Override
-    public void run() {}
+    public void run() {
+        synchronized (abductionMonitor){
+            multithread = true;
+            abductionMonitor.clearMonitor();
+            solveAbduction();
+            multithread = false;
+        }
+    }
 
     @Override
     public AbductionMonitor getAbductionMonitor() {
         return abductionMonitor;
     }
 
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
+
+    public boolean isPureMhs() {
+        return pureMhs;
+    }
+
+    public void setPureMhs(boolean pureMhs) {
+        this.pureMhs = pureMhs;
+    }
+
+    public boolean isStrictRelevance() {
+        return strictRelevance;
+    }
+
+    public void setStrictRelevance(boolean strictRelevance) {
+        this.strictRelevance = strictRelevance;
+    }
+
+    public void appendToLog(String message){
+        logs.append(message);
+        logs.append('\n');
+    }
+
+    public void setMessage(String message){
+        this.message = message;
+    }
 }

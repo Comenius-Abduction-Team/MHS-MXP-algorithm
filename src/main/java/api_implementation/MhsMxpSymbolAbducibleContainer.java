@@ -1,4 +1,4 @@
-package apiImplementation;
+package api_implementation;
 
 import abduction_api.abducibles.SymbolAbducibleContainer;
 import abduction_api.exception.SymbolAbducibleException;
@@ -10,10 +10,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class HybridSymbolAbducibleContainer extends HybridAbducibleContainer
+public class MhsMxpSymbolAbducibleContainer extends MhsMxpAbducibleContainer
         implements SymbolAbducibleContainer{
 
-    HybridSymbolAbducibleContainer(){}
+    MhsMxpSymbolAbducibleContainer(){}
 
     Set<OWLClass> classes = new HashSet<>();
     Set<OWLNamedIndividual> individuals = new HashSet<>();

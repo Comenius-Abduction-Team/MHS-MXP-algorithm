@@ -1,28 +1,34 @@
 import abduction_api.abducibles.AxiomAbducibleContainer;
-import abduction_api.abducibles.SymbolAbducibleContainer;
 import abduction_api.manager.AbductionManager;
 import abduction_api.manager.ExplanationWrapper;
+import abduction_api.monitors.AbductionMonitor;
 import algorithms.ISolver;
 import algorithms.hybrid.ConsoleExplanationManager;
 import algorithms.hybrid.HybridSolver;
-import apiImplementation.HybridAbductionFactory;
-import fileLogger.FileLogger;
+import api_implementation.MhsMxpAbductionFactory;
+import api_implementation.MhsMxpAbductionManager;
+import application.Application;
+import application.ExitCode;
+import common.ConsolePrinter;
+import file_logger.FileLogger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import parser.ArgumentParser;
 import common.Configuration;
+import parser.ObservationParser;
 import progress.ConsoleProgressManager;
 import reasoner.*;
 import timer.ThreadTimes;
 
-import java.io.File;
+import java.io.*;
 import java.util.Set;
+import java.util.logging.Logger;
 
 public class Main {
 
     /** whether the solver is being run from an IDE*/
-    private static final boolean TESTING = false;
+    private static final boolean TESTING = true;
     /** whether the solver is being run from an IDE through the API*/
     private static final boolean API = true;
 
@@ -163,7 +169,7 @@ public class Main {
 
         else if (API){
 
-            HybridAbductionFactory factory = HybridAbductionFactory.getFactory();
+            MhsMxpAbductionFactory factory = MhsMxpAbductionFactory.getFactory();
 
             OWLOntologyManager ontologyManager = OWLManager.createOWLOntologyManager();
             File file = new File("files/testExtractingModel9_2.owl");
@@ -183,41 +189,100 @@ public class Main {
             AxiomAbducibleContainer container = factory.getAxiomAbducibleContainer();
             //container.addAxiom(dataFactory.getOWLClassAssertionAxiom(E,a));
             //container.addAxiom(dataFactory.getOWLClassAssertionAxiom(C,a));
-            abductionManager.setAbducibles(container);
-            Set<ExplanationWrapper> explanations = abductionManager.getExplanations();
-            explanations.forEach(e -> System.out.println(e.getTextRepresentation()));
+            abductionManager.setAbducibleContainer(container);
+            abductionManager.setSolverSpecificParameters("");
+
+//            abductionManager.solveAbduction();
+//            System.out.println(abductionManager.getExplanations());
+
+            //        ontologyManager = OWLManager.createOWLOntologyManager();
+//        ontologyManager.copyOntology(ontology, OntologyCopy.DEEP);
+
+            abductionManager.setBackgroundKnowledge(ont);
+//            abductionManager.solveAbduction();
+//            System.out.println(abductionManager.getExplanations());
+
+            MhsMxpAbductionManager tam = (MhsMxpAbductionManager) abductionManager;
+            AbductionMonitor monitor = tam.getAbductionMonitor();
+            Thread t = new Thread(tam);
+            t.start();
+
+            while(true){
+                try{
+                    synchronized (monitor){
+                        monitor.wait();
+                        if (monitor.areNewExplanationsAvailable()){
+                            Set<ExplanationWrapper> expl = monitor.getExplanations();
+                            System.out.println(expl);
+                            monitor.markExplanationsAsProcessed();
+                            monitor.clearExplanations();
+                        }
+                        if (monitor.isNewProgressAvailable()){
+                            double progress = monitor.getProgress();
+                            String message = monitor.getStatusMessage();
+                            System.out.println(progress + "//" + message);
+                            monitor.markProgressAsProcessed();
+                        }
+                        if (monitor.getProgress() >= 100){
+                            t.interrupt();
+                            monitor.notify();
+                            break;
+                        }
+                        monitor.notify();
+                    }
+                } catch(InterruptedException e){
+                    e.printStackTrace();
+                }
+
+            }
+            System.out.println(tam.getExplanations());
+
+            System.out.println("-----------------------------------------");
+            System.out.println(abductionManager.getOutputMessage());
+            System.out.println("-----------------------------------------");
+            System.out.println(abductionManager.getFullLog());
 
             return;
 
         }
 
-        ArgumentParser argumentParser = new ArgumentParser();
-        argumentParser.parse(args);
-
+        Logger logger = Logger.getLogger(Main.class.getSimpleName());
         ThreadTimes threadTimes = new ThreadTimes(100);
-        threadTimes.start();
 
-        ILoader loader = new ConsoleLoader();
-        loader.initialize(Configuration.REASONER);
+        try{
 
-        IReasonerManager reasonerManager = new ReasonerManager(loader);
+            ArgumentParser argumentParser = new ArgumentParser();
+            argumentParser.parse(args);
 
-        ISolver solver = createSolver(threadTimes, loader, reasonerManager);
+            threadTimes.start();
 
-        if (solver != null) {
+            ILoader loader = new ConsoleLoader();
+            loader.initialize(Configuration.REASONER);
+
+            IReasonerManager reasonerManager = new ReasonerManager(loader);
+
+
+            ISolver solver = createSolver(threadTimes, loader, reasonerManager, logger);
             solver.solve(loader, reasonerManager);
+
+        } catch(RuntimeException e) {
+            new ConsolePrinter(logger).logError(e.getMessage(), null);
+            Application.finish(ExitCode.ERROR);
+        } finally {
+            threadTimes.interrupt();
         }
 
-        threadTimes.interrupt();
+
     }
 
-    private static ISolver createSolver(ThreadTimes threadTimes, ILoader loader, IReasonerManager reasonerManager) {
+    private static ISolver createSolver(ThreadTimes threadTimes, ILoader loader, IReasonerManager reasonerManager, Logger logger) {
 
         ConsoleExplanationManager explanationManager = new ConsoleExplanationManager(loader, reasonerManager);
         ConsoleProgressManager progressManager = new ConsoleProgressManager();
 
         long currentTimeMillis = System.currentTimeMillis();
 
-        return new HybridSolver(threadTimes, currentTimeMillis, explanationManager, progressManager);
+        return new HybridSolver(threadTimes, currentTimeMillis, explanationManager, progressManager,
+                new ConsolePrinter(logger));
     }
 }

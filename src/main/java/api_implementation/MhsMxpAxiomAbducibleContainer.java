@@ -1,4 +1,4 @@
-package apiImplementation;
+package api_implementation;
 
 import abduction_api.abducibles.*;
 import abduction_api.exception.AxiomAbducibleException;
@@ -11,13 +11,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class HybridAxiomAbducibleContainer
-        extends HybridAbducibleContainer
+public class MhsMxpAxiomAbducibleContainer
+        extends MhsMxpAbducibleContainer
         implements AxiomAbducibleContainer {
 
     Set<OWLAxiom> axioms = new HashSet<>();
 
-    HybridAxiomAbducibleContainer(){}
+    MhsMxpAxiomAbducibleContainer(){}
 
     @Override
     public void addAxiom(OWLAxiom axiom) throws AxiomAbducibleException {

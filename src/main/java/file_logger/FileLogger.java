@@ -1,4 +1,4 @@
-package fileLogger;
+package file_logger;
 
 import common.Configuration;
 import common.DLSyntax;

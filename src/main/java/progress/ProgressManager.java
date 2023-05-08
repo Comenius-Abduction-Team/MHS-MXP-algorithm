@@ -5,7 +5,8 @@ import common.Configuration;
 public abstract class ProgressManager {
 
     final protected int BAR_LENGTH = 30;
-    protected int currentProgress = 0;
+    protected int currentProgressBlocks = 0;
+    protected double currentPercentage = 0;
     protected String message;
 
     public void updateProgress(int depth, double time) {
@@ -14,7 +15,8 @@ public abstract class ProgressManager {
     }
 
     public void updateProgress(double percentage, String message) {
-        currentProgress = percentageToBlocks(percentage);
+        currentPercentage = percentage;
+        currentProgressBlocks = percentageToBlocks(percentage);
         this.message = message;
         processProgress();
     }
@@ -39,11 +41,10 @@ public abstract class ProgressManager {
     }
 
     private void updateProgressAccordingToDepthLimit(int depth){
-        double remainingPercentage = 1 - currentProgress / (double) BAR_LENGTH;
+        double remainingPercentage = 1 - currentPercentage;
         int maxDepth = Configuration.DEPTH;
         double percentageToFill = remainingPercentage / Math.pow(maxDepth, maxDepth - depth);
-        int newProgress = percentageToBlocks(percentageToFill);
-        increaseProgress(newProgress);
+        increaseProgress(percentageToFill);
     }
 
     private void updateMessageAccordingToDepth(int depth){
@@ -52,15 +53,17 @@ public abstract class ProgressManager {
 
     private void updateProgressAccordingToTimeLimit(double time){
         double percentage = time / (double) Configuration.TIMEOUT;
-        currentProgress = percentageToBlocks(percentage);
+        currentPercentage = percentage;
+        currentProgressBlocks = percentageToBlocks(percentage);
     }
 
     private void updateMessageAccordingToTimeLimit(double time){
         message = "Seconds left until time-out: " + (Configuration.TIMEOUT - time);
     }
 
-    private void increaseProgress(int newProgress){
-        currentProgress += newProgress;
+    private void increaseProgress(double percentage){
+        currentPercentage += percentage;
+        currentProgressBlocks += percentageToBlocks(percentage);
     }
 
 }

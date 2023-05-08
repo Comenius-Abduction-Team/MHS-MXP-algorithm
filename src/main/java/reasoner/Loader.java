@@ -1,8 +1,7 @@
 package reasoner;
 
-import application.Application;
-import application.ExitCode;
 import common.LogMessage;
+import common.Printer;
 import models.Abducibles;
 import models.Individuals;
 import models.Observation;
@@ -13,12 +12,8 @@ import org.semanticweb.owlapi.reasoner.knowledgeexploration.OWLKnowledgeExplorer
 import uk.ac.manchester.cs.jfact.JFactFactory;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public abstract class Loader implements ILoader {
-
-    protected Logger logger = Logger.getLogger(Loader.class.getSimpleName());
 
     protected OWLOntologyManager ontologyManager;
     protected OWLReasonerFactory reasonerFactory;
@@ -37,6 +32,8 @@ public abstract class Loader implements ILoader {
     protected boolean isMultipleObservationOnInput = false;
     protected boolean isAxiomBasedAbduciblesOnInput = false;
 
+    protected Printer printer;
+
     protected void loadReasoner(ReasonerType reasonerType) {
         try {
             ontologyManager = OWLManager.createOWLOntologyManager();
@@ -45,17 +42,16 @@ public abstract class Loader implements ILoader {
             initializeReasoner();
 
             if (reasoner.isConsistent()) {
-                logger.log(Level.INFO, LogMessage.INFO_ONTOLOGY_CONSISTENCY);
+                printer.logInfo(LogMessage.INFO_ONTOLOGY_CONSISTENCY);
             } else {
-                logger.log(Level.WARNING, LogMessage.ERROR_ONTOLOGY_CONSISTENCY);
+                //printer.logError(LogMessage.ERROR_ONTOLOGY_CONSISTENCY, null);
                 reasoner.dispose();
-
-                Application.finish(ExitCode.ERROR);
+                throw new RuntimeException(LogMessage.ERROR_ONTOLOGY_CONSISTENCY);
             }
 
         } catch (OWLOntologyCreationException exception) {
-            logger.log(Level.WARNING, LogMessage.ERROR_CREATING_ONTOLOGY, exception);
-            Application.finish(ExitCode.ERROR);
+            //printer.logError(LogMessage.ERROR_CREATING_ONTOLOGY, exception);
+            throw new RuntimeException(LogMessage.ERROR_CREATING_ONTOLOGY);
         }
     }
 
@@ -81,7 +77,7 @@ public abstract class Loader implements ILoader {
 
         setOWLReasonerFactory(new JFactFactory());
         reasoner = (OWLKnowledgeExplorerReasoner) reasonerFactory.createReasoner(ontology);
-        logger.log(Level.INFO, LogMessage.INFO_ONTOLOGY_LOADED);
+        printer.logInfo(LogMessage.INFO_ONTOLOGY_LOADED);
     }
 
     @Override

@@ -4,13 +4,12 @@ import algorithms.ISolver;
 import com.google.common.collect.Iterables;
 import common.Configuration;
 
+import common.Printer;
 import models.Abducibles;
 import models.Explanation;
 import models.Literals;
 import org.semanticweb.owlapi.model.*;
 
-import progress.ApiProgressManager;
-import progress.ConsoleProgressManager;
 import progress.ProgressManager;
 import reasoner.AxiomManager;
 import reasoner.ILoader;
@@ -53,23 +52,12 @@ public class HybridSolver implements ISolver {
     private Integer currentDepth;
 
     public HybridSolver(ThreadTimes threadTimes, long currentTimeMillis,
-                        ConsoleExplanationManager explanationManager, ConsoleProgressManager progressManager) {
+                        ExplanationManager explanationManager, ProgressManager progressManager, Printer printer) {
 
-        System.out.println();
-        System.out.println(String.join("\n", getInfo()));
-        System.out.println();
-
-        this.explanationManager = explanationManager;
-        explanationManager.setSolver(this);
-
-        this.progressManager = progressManager;
-
-        this.threadTimes = threadTimes;
-        this.currentTimeMillis = currentTimeMillis;
-    }
-
-    public HybridSolver(ThreadTimes threadTimes, long currentTimeMillis,
-                        ApiExplanationManager explanationManager, ApiProgressManager progressManager) {
+        String info = String.join("\n", getInfo());
+        printer.print("");
+        printer.print(info);
+        printer.print("");
 
         this.explanationManager = explanationManager;
         explanationManager.setSolver(this);
@@ -79,6 +67,34 @@ public class HybridSolver implements ISolver {
         this.threadTimes = threadTimes;
         this.currentTimeMillis = currentTimeMillis;
     }
+
+//    public HybridSolver(ThreadTimes threadTimes, long currentTimeMillis,
+//                        ConsoleExplanationManager explanationManager, ConsoleProgressManager progressManager) {
+//
+//        System.out.println();
+//        System.out.println(String.join("\n", getInfo()));
+//        System.out.println();
+//
+//        this.explanationManager = explanationManager;
+//        explanationManager.setSolver(this);
+//
+//        this.progressManager = progressManager;
+//
+//        this.threadTimes = threadTimes;
+//        this.currentTimeMillis = currentTimeMillis;
+//    }
+//
+//    public HybridSolver(ThreadTimes threadTimes, long currentTimeMillis,
+//                        ApiExplanationManager explanationManager, ApiProgressManager progressManager) {
+//
+//        this.explanationManager = explanationManager;
+//        explanationManager.setSolver(this);
+//
+//        this.progressManager = progressManager;
+//
+//        this.threadTimes = threadTimes;
+//        this.currentTimeMillis = currentTimeMillis;
+//    }
 
     public ExplanationManager getExplanationManager(){
         return explanationManager;
@@ -119,7 +135,7 @@ public class HybridSolver implements ISolver {
         String message = null;
 
         if (!reasonerManager.isOntologyConsistent()) {
-            message = "MESSAGE: nothing to explain";
+            message = "The observation is already entailed!";
             explanationManager.processExplanations(message);
         }
 
@@ -134,6 +150,7 @@ public class HybridSolver implements ISolver {
         }
 
         explanationManager.processExplanations(message);
+        progressManager.updateProgress(100, "Abduction finished.");
     }
 
     private void trySolve() throws OWLOntologyStorageException, OWLOntologyCreationException {
@@ -173,7 +190,7 @@ public class HybridSolver implements ISolver {
             Set<OWLAxiom> abduciblesWithoutObservation = abducibles.getAxiomBasedAbducibles();
             if (loader.isMultipleObservationOnInput()){
                 if (Configuration.STRICT_RELEVANCE) {
-                    abduciblesWithoutObservation.removeAll(loader.getObservation().getAxiomsInMultipleObservations());
+                    loader.getObservation().getAxiomsInMultipleObservations().forEach(abduciblesWithoutObservation::remove);
                 }
             } else {
                 abduciblesWithoutObservation.remove(loader.getObservation().getOwlAxiom());
@@ -321,7 +338,6 @@ public class HybridSolver implements ISolver {
             makePartialLog();
         }
         currentDepth = 0;
-        progressManager.updateProgress(100, "Abduction finished.");
     }
 
     private void makePartialLog() {
@@ -415,7 +431,6 @@ public class HybridSolver implements ISolver {
 
     private boolean isTimeout(){
         if (Configuration.TIMEOUT != null && threadTimes.getTotalUserTimeInSec() > Configuration.TIMEOUT) {
-            System.out.println("timeout");
             return true;
         }
         return false;

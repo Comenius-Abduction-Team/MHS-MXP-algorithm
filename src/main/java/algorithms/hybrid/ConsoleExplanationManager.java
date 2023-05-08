@@ -1,5 +1,6 @@
 package algorithms.hybrid;
 
+import common.ConsolePrinter;
 import models.Explanation;
 import org.semanticweb.owlapi.model.*;
 import reasoner.ILoader;
@@ -9,6 +10,7 @@ public class ConsoleExplanationManager extends ExplanationManager {
 
     public ConsoleExplanationManager(ILoader loader, IReasonerManager reasonerManager){
         super(loader, reasonerManager);
+        printer = new ConsolePrinter(null);
     }
 
     public void addPossibleExplanation(Explanation explanation) {
@@ -17,15 +19,14 @@ public class ConsoleExplanationManager extends ExplanationManager {
 
     public void processExplanations(String message) throws OWLOntologyCreationException, OWLOntologyStorageException {
         try{
-            showExplanations(true);
+            showExplanations();
         } catch (OWLOntologyCreationException | OWLOntologyStorageException e) {
             e.printStackTrace();
         }
         showMessages(solver.getInfo(), message);
 
         if (message != null){
-            System.out.println();
-            System.out.println(message);
+            printer.print('\n' + message);
         }
     }
 

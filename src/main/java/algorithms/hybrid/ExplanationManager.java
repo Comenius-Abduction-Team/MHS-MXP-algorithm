@@ -3,7 +3,8 @@ package algorithms.hybrid;
 import common.Configuration;
 import common.DLSyntax;
 import common.Printer;
-import fileLogger.FileLogger;
+import common.StringFactory;
+import file_logger.FileLogger;
 import models.Explanation;
 import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -29,12 +30,12 @@ public abstract class ExplanationManager {
     private final ILoader loader;
     private final IReasonerManager reasonerManager;
     private final ICheckRules checkRules;
+    protected Printer printer;
 
     public ExplanationManager(ILoader loader, IReasonerManager reasonerManager){
         this.loader = loader;
         this.reasonerManager = reasonerManager;
         this.checkRules = new CheckRules(loader, reasonerManager);
-        this.possibleExplanations = new ArrayList<>();
     }
 
     public void setSolver(HybridSolver solver) {
@@ -74,7 +75,7 @@ public abstract class ExplanationManager {
 
     public abstract void processExplanations(String message) throws OWLOntologyCreationException, OWLOntologyStorageException;
 
-    public void showExplanations(boolean print) throws OWLOntologyStorageException, OWLOntologyCreationException {
+    public void showExplanations() throws OWLOntologyStorageException, OWLOntologyCreationException {
         List<Explanation> filteredExplanations;
         if(Configuration.MHS_MODE){
             filteredExplanations = possibleExplanations;
@@ -85,7 +86,7 @@ public abstract class ExplanationManager {
         solver.path.clear();
         finalExplanations = new LinkedList<>();
 
-        StringBuilder result = showExplanationsAccordingToLength(filteredExplanations, print);
+        StringBuilder result = showExplanationsAccordingToLength(filteredExplanations);
         FileLogger.appendToFile(FileLogger.HYBRID_LOG_FILE__PREFIX, solver.currentTimeMillis, result.toString());
 
         log_explanations_times(finalExplanations);
@@ -132,7 +133,7 @@ public abstract class ExplanationManager {
     }
 
 
-    private StringBuilder showExplanationsAccordingToLength(List<Explanation> filteredExplanations, boolean print) throws OWLOntologyCreationException {
+    private StringBuilder showExplanationsAccordingToLength(List<Explanation> filteredExplanations) throws OWLOntologyCreationException {
         StringBuilder result = new StringBuilder();
         int depth = 1;
         while (filteredExplanations.size() > 0) {
@@ -152,16 +153,14 @@ public abstract class ExplanationManager {
             }
             finalExplanations.addAll(currentExplanations);
             String currentExplanationsFormat = StringUtils.join(currentExplanations, ",");
-            String line = String.format("%d;%d;%.2f;{%s}\n", depth, currentExplanations.size(), solver.level_times.get(depth), currentExplanationsFormat);
-            if (print)
-                System.out.print(line);
+            String line = String.format("%d;%d;%.2f;{%s}", depth, currentExplanations.size(), solver.level_times.get(depth), currentExplanationsFormat);
+            printer.print(line);
             result.append(line);
             depth++;
         }
 
-        String line = String.format("%.2f\n", solver.threadTimes.getTotalUserTimeInSec());
-        if (print)
-            System.out.print(line);
+        String line = String.format("%.2f", solver.threadTimes.getTotalUserTimeInSec());
+        printer.print(line);
         result.append(line);
 
         return result;
@@ -176,11 +175,11 @@ public abstract class ExplanationManager {
                 solver.level_times.put(level, find_level_time(currentExplanations));
             }
             String currentExplanationsFormat = StringUtils.join(currentExplanations, ",");
-            String line = String.format("%d;%d;%.2f;{%s}\n", level, currentExplanations.size(), solver.level_times.get(level), currentExplanationsFormat);
+            String line = String.format("%d;%d;%.2f;{%s}", level, currentExplanations.size(), solver.level_times.get(level), currentExplanationsFormat);
             result.append(line);
             level++;
         }
-        String line = String.format("%.2f\n", solver.threadTimes.getTotalUserTimeInSec());
+        String line = String.format("%.2f", solver.threadTimes.getTotalUserTimeInSec());
         result.append(line);
         return result;
     }
@@ -275,7 +274,7 @@ public abstract class ExplanationManager {
     }
 
     private String getClassName(OWLAxiom axiom) {
-        return Printer.print(axiom).split("\\" + DLSyntax.LEFT_PARENTHESES)[0];
+        return StringFactory.getRepresentation(axiom).split("\\" + DLSyntax.LEFT_PARENTHESES)[0];
     }
 
     private boolean containsNegation(String name) {

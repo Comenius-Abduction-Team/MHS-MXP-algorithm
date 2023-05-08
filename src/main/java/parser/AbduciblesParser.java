@@ -64,18 +64,18 @@ public class AbduciblesParser {
 
     private void checkFormatOfAbducibles(){
         if(Configuration.AXIOM_BASED_ABDUCIBLES.size() > 0 && (Configuration.ABDUCIBLES_ROLES.size() > 0 || Configuration.ABDUCIBLES_INDIVIDUALS.size() > 0 || Configuration.ABDUCIBLES_CONCEPTS.size() > 0)){
-            System.err.println("Incorrect format of abducibles. You have to choose axiom based abducibles (switch -abd) or list of individuals, concepts, roles (switches -aI, -aC, -aR)");
-            Application.finish(ExitCode.ERROR);
+            String message = "Incorrect format of abducibles. You have to choose axiom based abducibles (switch -abd) or list of individuals, concepts, roles (switches -aI, -aC, -aR)";
+            throw new RuntimeException(message);
         }
 
         if(Configuration.AXIOM_BASED_ABDUCIBLES.size() > 0 && Configuration.ABDUCIBLES_FILE_NAME != null){
-            System.err.println("Incorrect format of abducibles. You have to choose listed axiom based abducibles (switch -abd) or axiom based abducibles from ontology file (switch -abdF)");
-            Application.finish(ExitCode.ERROR);
+            String message = "Incorrect format of abducibles. You have to choose listed axiom based abducibles (switch -abd) or axiom based abducibles from ontology file (switch -abdF)";
+            throw new RuntimeException(message);
         }
 
         if(Configuration.ABDUCIBLES_FILE_NAME != null && (Configuration.ABDUCIBLES_ROLES.size() > 0 || Configuration.ABDUCIBLES_INDIVIDUALS.size() > 0 || Configuration.ABDUCIBLES_CONCEPTS.size() > 0)){
-            System.err.println("Incorrect format of abducibles. You have to choose axiom based abducibles from ontology file (switch -abdF) or list of individuals, concepts, roles (switches -aI, -aC, -aR)");
-            Application.finish(ExitCode.ERROR);
+            String message = "Incorrect format of abducibles. You have to choose axiom based abducibles from ontology file (switch -abdF) or list of individuals, concepts, roles (switches -aI, -aC, -aR)";
+            throw new RuntimeException(message);
         }
     }
 
@@ -301,14 +301,13 @@ public class AbduciblesParser {
         } else if (abducibleTemp.length == 2){
             String pref = abducibleTemp[0] + ":";
             if(!Prefixes.prefixes.containsKey(pref)){
-                System.err.println("Prefix " + abducibleTemp[0] + " in abducible '" + abducible + "' is unknown.");
-                Application.finish(ExitCode.ERROR);
+                String message = "Prefix " + abducibleTemp[0] + " in abducible '" + abducible + "' is unknown.";
+                throw new RuntimeException(message);
             }
             return abducible.replace(pref, Prefixes.prefixes.get(pref));
         } else {
-            System.err.println("Incorrect IRI in abducible '" + abducible + "', only one delimeter ':' may be used - between prefix and name.");
-            Application.finish(ExitCode.ERROR);
+            String message = "Incorrect IRI in abducible '" + abducible + "', only one delimeter ':' may be used - between prefix and name.";
+            throw new RuntimeException(message);
         }
-        return "";
     }
 }

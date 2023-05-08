@@ -1,11 +1,11 @@
-package apiImplementation;
+package api_implementation;
 
 import abduction_api.abducibles.*;
 import abduction_api.exception.NotSupportedException;
 import models.Abducibles;
 import reasoner.ILoader;
 
-public abstract class HybridAbducibleContainer
+public abstract class MhsMxpAbducibleContainer
         implements AbducibleContainer, RoleAbducibleConfigurator, ComplexConceptAbducibleConfigurator {
     
     private boolean conceptComplements = true, roles = false, loops = true; 
