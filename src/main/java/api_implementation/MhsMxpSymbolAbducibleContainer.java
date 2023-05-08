@@ -13,7 +13,11 @@ import java.util.Set;
 public class MhsMxpSymbolAbducibleContainer extends MhsMxpAbducibleContainer
         implements SymbolAbducibleContainer{
 
-    MhsMxpSymbolAbducibleContainer(){}
+    public MhsMxpSymbolAbducibleContainer(){}
+
+    public MhsMxpSymbolAbducibleContainer(Collection<OWLEntity> symbols) throws SymbolAbducibleException {
+        addSymbols(symbols);
+    }
 
     Set<OWLClass> classes = new HashSet<>();
     Set<OWLNamedIndividual> individuals = new HashSet<>();

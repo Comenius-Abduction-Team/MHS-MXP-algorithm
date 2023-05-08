@@ -2,7 +2,7 @@ package api_implementation;
 
 import abduction_api.abducibles.AbducibleContainer;
 import abduction_api.exception.InvalidObservationException;
-import abduction_api.exception.InvalidSolverSettingException;
+import abduction_api.exception.InvalidSolverParameterException;
 import abduction_api.exception.MultiObservationException;
 import abduction_api.manager.AbductionManager;
 import abduction_api.manager.ExplanationWrapper;
@@ -23,10 +23,7 @@ import timer.ThreadTimes;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class MhsMxpAbductionManager implements
-        AbductionManager,
-        MultiObservationManager,
-        ThreadAbductionManager {
+public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAbductionManager {
 
     MhsMxpAbducibleContainer abducibles;
     OWLOntology backgroundKnowledge;
@@ -50,11 +47,21 @@ public class MhsMxpAbductionManager implements
     String message = "";
     StringBuilder logs = new StringBuilder();
 
-    MhsMxpAbductionManager(){
+    public MhsMxpAbductionManager(){
         FileLogger.initializeLogger();
     }
 
+    public MhsMxpAbductionManager(OWLOntology backgroundKnowledge, OWLAxiom observation)
+    throws InvalidObservationException {
+        setBackgroundKnowledge(backgroundKnowledge);
+        setObservation(observation);
+    }
 
+    public MhsMxpAbductionManager(OWLOntology backgroundKnowledge, Set<OWLAxiom> observation)
+    throws InvalidObservationException {
+        setBackgroundKnowledge(backgroundKnowledge);
+        setMultipleObservations(observation);
+    }
 
     public void setExplanations(Collection<Explanation> explanations){
         this.explanations = explanations.stream()
@@ -149,10 +156,10 @@ public class MhsMxpAbductionManager implements
                             i++;
                             continue;
                         default:
-                            throw new InvalidSolverSettingException(arguments[i], "Unknown solver argument");
+                            throw new InvalidSolverParameterException(arguments[i], "Unknown solver argument");
                     }
                 } catch(NumberFormatException e){
-                    throw new InvalidSolverSettingException(arguments[i+1], "Invalid integer value");
+                    throw new InvalidSolverParameterException(arguments[i+1], "Invalid integer value");
                 }
             }
     }

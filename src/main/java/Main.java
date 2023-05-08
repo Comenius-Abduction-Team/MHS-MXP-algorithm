@@ -1,12 +1,10 @@
-import abduction_api.abducibles.AxiomAbducibleContainer;
-import abduction_api.manager.AbductionManager;
 import abduction_api.manager.ExplanationWrapper;
+import abduction_api.manager.ThreadAbductionManager;
 import abduction_api.monitors.AbductionMonitor;
 import algorithms.ISolver;
 import algorithms.hybrid.ConsoleExplanationManager;
 import algorithms.hybrid.HybridSolver;
 import api_implementation.MhsMxpAbductionFactory;
-import api_implementation.MhsMxpAbductionManager;
 import application.Application;
 import application.ExitCode;
 import common.ConsolePrinter;
@@ -16,7 +14,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import parser.ArgumentParser;
 import common.Configuration;
-import parser.ObservationParser;
 import progress.ConsoleProgressManager;
 import reasoner.*;
 import timer.ThreadTimes;
@@ -28,7 +25,7 @@ import java.util.logging.Logger;
 public class Main {
 
     /** whether the solver is being run from an IDE*/
-    private static final boolean TESTING = true;
+    private static final boolean TESTING = false;
     /** whether the solver is being run from an IDE through the API*/
     private static final boolean API = true;
 
@@ -185,12 +182,12 @@ public class Main {
             OWLClassAssertionAxiom classAssertion = dataFactory.getOWLClassAssertionAxiom(
                     dataFactory.getOWLObjectIntersectionOf(A,C,E), a);
 
-            AbductionManager abductionManager = factory.getAbductionManagerWithInput(ont, classAssertion);
-            AxiomAbducibleContainer container = factory.getAxiomAbducibleContainer();
+            //AbductionManager abductionManager = factory.getAbductionManagerWithInput(ont, classAssertion);
+            //AxiomAbducibleContainer container = factory.getAxiomAbducibleContainer();
             //container.addAxiom(dataFactory.getOWLClassAssertionAxiom(E,a));
             //container.addAxiom(dataFactory.getOWLClassAssertionAxiom(C,a));
-            abductionManager.setAbducibleContainer(container);
-            abductionManager.setSolverSpecificParameters("");
+            //abductionManager.setAbducibleContainer(container);
+            //abductionManager.setSolverSpecificParameters("");
 
 //            abductionManager.solveAbduction();
 //            System.out.println(abductionManager.getExplanations());
@@ -198,11 +195,11 @@ public class Main {
             //        ontologyManager = OWLManager.createOWLOntologyManager();
 //        ontologyManager.copyOntology(ontology, OntologyCopy.DEEP);
 
-            abductionManager.setBackgroundKnowledge(ont);
+            //abductionManager.setBackgroundKnowledge(ont);
 //            abductionManager.solveAbduction();
 //            System.out.println(abductionManager.getExplanations());
 
-            MhsMxpAbductionManager tam = (MhsMxpAbductionManager) abductionManager;
+            ThreadAbductionManager tam = factory.getThreadAbductionManager(ont, classAssertion);
             AbductionMonitor monitor = tam.getAbductionMonitor();
             Thread t = new Thread(tam);
             t.start();
@@ -238,9 +235,9 @@ public class Main {
             System.out.println(tam.getExplanations());
 
             System.out.println("-----------------------------------------");
-            System.out.println(abductionManager.getOutputMessage());
+            System.out.println(tam.getOutputMessage());
             System.out.println("-----------------------------------------");
-            System.out.println(abductionManager.getFullLog());
+            System.out.println(tam.getFullLog());
 
             return;
 

@@ -11,13 +11,15 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class MhsMxpAxiomAbducibleContainer
-        extends MhsMxpAbducibleContainer
-        implements AxiomAbducibleContainer {
+public class MhsMxpAxiomAbducibleContainer extends MhsMxpAbducibleContainer implements AxiomAbducibleContainer {
 
     Set<OWLAxiom> axioms = new HashSet<>();
 
-    MhsMxpAxiomAbducibleContainer(){}
+    public MhsMxpAxiomAbducibleContainer(){}
+
+    public MhsMxpAxiomAbducibleContainer(Collection<OWLAxiom> axioms) throws AxiomAbducibleException {
+        addAxioms(axioms);
+    }
 
     @Override
     public void addAxiom(OWLAxiom axiom) throws AxiomAbducibleException {
