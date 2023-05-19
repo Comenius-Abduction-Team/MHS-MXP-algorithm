@@ -21,7 +21,7 @@ public class ApiObservationParser extends ObservationParser {
     protected void createOntologyFromObservation() throws OWLOntologyCreationException {
 
         OWLOntologyManager ontologyManager = OWLManager.createOWLOntologyManager();
-        OWLOntology observationOntology = ontologyManager.createOntology(abductionManager.getMultipleObservations());
+        OWLOntology observationOntology = ontologyManager.createOntology(abductionManager.getMultiAxiomObservation());
         Configuration.OBSERVATION = observationOntology.toString();
         processAxiomsFromObservation(observationOntology);
 

@@ -1,11 +1,10 @@
 package api_implementation;
 
-import abduction_api.abducibles.AxiomAbducibleContainer;
-import abduction_api.abducibles.SymbolAbducibleContainer;
+import abduction_api.abducible.*;
 import abduction_api.exception.AxiomAbducibleException;
 import abduction_api.exception.InvalidObservationException;
 import abduction_api.exception.SymbolAbducibleException;
-import abduction_api.factories.AbductionFactory;
+import abduction_api.factory.AbductionFactory;
 import abduction_api.manager.AbductionManager;
 import abduction_api.manager.MultiObservationManager;
 import abduction_api.manager.ThreadAbductionManager;
@@ -61,6 +60,11 @@ public class MhsMxpAbductionFactory implements AbductionFactory{
     }
 
     @Override
+    public AbducibleContainer getAbducibleContainer() {
+        return new MhsMxpAxiomAbducibleContainer();
+    }
+
+    @Override
     public AxiomAbducibleContainer getAxiomAbducibleContainer() {
         return new MhsMxpAxiomAbducibleContainer();
     }
@@ -80,5 +84,20 @@ public class MhsMxpAbductionFactory implements AbductionFactory{
     public SymbolAbducibleContainer getSymbolAbducibleContainer(Collection<OWLEntity> symbols)
             throws SymbolAbducibleException {
         return new MhsMxpSymbolAbducibleContainer(symbols);
+    }
+
+    @Override
+    public ExplanationConfigurator getExplanationConfigurator() {
+        return new MhsMxpExplanationConfigurator();
+    }
+
+    @Override
+    public ComplexConceptExplanationConfigurator getComplexConceptExplanationConfigurator() {
+        return new MhsMxpExplanationConfigurator();
+    }
+
+    @Override
+    public RoleExplanationConfigurator getRoleExplanationConfigurator() {
+        return new MhsMxpExplanationConfigurator();
     }
 }

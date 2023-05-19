@@ -28,7 +28,8 @@ public class ApiExplanationManager extends ConsoleExplanationManager {
     }
 
     public void processExplanations(String message) throws OWLOntologyCreationException, OWLOntologyStorageException {
-        abductionManager.setMessage(message);
+        if (! (message == null))
+            abductionManager.setMessage(message);
         showExplanations();
         abductionManager.setExplanations(finalExplanations);
     }

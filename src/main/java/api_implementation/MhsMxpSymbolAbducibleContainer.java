@@ -1,6 +1,6 @@
 package api_implementation;
 
-import abduction_api.abducibles.SymbolAbducibleContainer;
+import abduction_api.abducible.SymbolAbducibleContainer;
 import abduction_api.exception.SymbolAbducibleException;
 import models.Abducibles;
 import org.semanticweb.owlapi.model.*;

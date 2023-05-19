@@ -1,14 +1,15 @@
 package api_implementation;
 
-import abduction_api.abducibles.AbducibleContainer;
+import abduction_api.abducible.AbducibleContainer;
+import abduction_api.abducible.ExplanationConfigurator;
+import abduction_api.exception.CommonException;
 import abduction_api.exception.InvalidObservationException;
 import abduction_api.exception.InvalidSolverParameterException;
 import abduction_api.exception.MultiObservationException;
-import abduction_api.manager.AbductionManager;
 import abduction_api.manager.ExplanationWrapper;
 import abduction_api.manager.MultiObservationManager;
 import abduction_api.manager.ThreadAbductionManager;
-import abduction_api.monitors.AbductionMonitor;
+import abduction_api.monitor.AbductionMonitor;
 import algorithms.hybrid.ApiExplanationManager;
 import algorithms.hybrid.HybridSolver;
 import common.ApiPrinter;
@@ -25,27 +26,33 @@ import java.util.stream.Collectors;
 
 public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAbductionManager {
 
-    MhsMxpAbducibleContainer abducibles;
+    private MhsMxpAbducibleContainer abducibles;
+    private MhsMxpExplanationConfigurator configurator = new MhsMxpExplanationConfigurator();
+    final AbductionMonitor abductionMonitor = new AbductionMonitor();
+
     OWLOntology backgroundKnowledge;
     Set<OWLAxiom> observations;
+
+    Set<ExplanationWrapper> explanations = new HashSet<>();
+    String message = "";
+    StringBuilder logs = new StringBuilder();
+
     double timeout = 0;
     int depth = 0;
     boolean pureMhs = false;
     boolean strictRelevance = true;
 
-    public boolean isMultithread() {
-        return multithread;
-    }
-
     boolean multithread = false;
-    Set<ExplanationWrapper> explanations = new HashSet<>();
-    final AbductionMonitor abductionMonitor = new AbductionMonitor();
+
     HybridSolver solver;
     ApiLoader loader;
     ReasonerManager reasonerManager;
     ThreadTimes timer;
-    String message = "";
-    StringBuilder logs = new StringBuilder();
+
+
+    public boolean isMultithread() {
+        return multithread;
+    }
 
     public MhsMxpAbductionManager(){
         FileLogger.initializeLogger();
@@ -60,7 +67,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     public MhsMxpAbductionManager(OWLOntology backgroundKnowledge, Set<OWLAxiom> observation)
     throws InvalidObservationException {
         setBackgroundKnowledge(backgroundKnowledge);
-        setMultipleObservations(observation);
+        setMultiAxiomObservation(observation);
     }
 
     public void setExplanations(Collection<Explanation> explanations){
@@ -98,7 +105,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     }
 
     @Override
-    public void setMultipleObservations(Set<OWLAxiom> observation) throws InvalidObservationException {
+    public void setMultiAxiomObservation(Set<OWLAxiom> observation) throws InvalidObservationException {
         observation.forEach(this::addSingleObservation);
     }
 
@@ -118,7 +125,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     }
 
     @Override
-    public Set<OWLAxiom> getMultipleObservations() {
+    public Set<OWLAxiom> getMultiAxiomObservation() {
         return observations;
     }
 
@@ -244,22 +251,34 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
         if (abducibles == null)
             return;
 
-        Configuration.LOOPING_ALLOWED = abducibles.areLoopsAllowed();
-        Configuration.ROLES_IN_EXPLANATIONS_ALLOWED = abducibles.areRoleAssertionsAllowed();
-        Configuration.NEGATION_ALLOWED = abducibles.areConceptComplementsAllowed();
+        Configuration.LOOPING_ALLOWED = configurator.areLoopsAllowed();
+        Configuration.ROLES_IN_EXPLANATIONS_ALLOWED = configurator.areRoleAssertionsAllowed();
+        Configuration.NEGATION_ALLOWED = configurator.areConceptComplementsAllowed();
     }
 
 
     @Override
     public void setAbducibleContainer(AbducibleContainer abducibles) {
         if (! (abducibles instanceof MhsMxpAbducibleContainer))
-            return;
+            throw new CommonException("Abducible container type not compatible with abduction manager!");
         this.abducibles = (MhsMxpAbducibleContainer) abducibles;
     }
 
     @Override
     public MhsMxpAbducibleContainer getAbducibleContainer() {
         return abducibles;
+    }
+
+    @Override
+    public ExplanationConfigurator getExplanationConfigurator() {
+        return configurator;
+    }
+
+    @Override
+    public void setExplanationConfigurator(ExplanationConfigurator configurator) {
+        if (! (configurator instanceof MhsMxpExplanationConfigurator))
+            throw new CommonException("Explanation configurator type not compatible with abduction manager!");
+        this.configurator = (MhsMxpExplanationConfigurator) configurator;
     }
 
     @Override

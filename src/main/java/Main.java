@@ -1,10 +1,13 @@
+import abduction_api.abducible.SymbolAbducibleContainer;
 import abduction_api.manager.ExplanationWrapper;
 import abduction_api.manager.ThreadAbductionManager;
-import abduction_api.monitors.AbductionMonitor;
+import abduction_api.monitor.AbductionMonitor;
+import abduction_api.monitor.Percentage;
 import algorithms.ISolver;
 import algorithms.hybrid.ConsoleExplanationManager;
 import algorithms.hybrid.HybridSolver;
 import api_implementation.MhsMxpAbductionFactory;
+import api_implementation.MhsMxpAbductionManager;
 import application.Application;
 import application.ExitCode;
 import common.ConsolePrinter;
@@ -183,10 +186,12 @@ public class Main {
                     dataFactory.getOWLObjectIntersectionOf(A,C,E), a);
 
             //AbductionManager abductionManager = factory.getAbductionManagerWithInput(ont, classAssertion);
-            //AxiomAbducibleContainer container = factory.getAxiomAbducibleContainer();
+            SymbolAbducibleContainer container = factory.getSymbolAbducibleContainer();
+            container.addSymbol(A);
+            container.addSymbol(C);
             //container.addAxiom(dataFactory.getOWLClassAssertionAxiom(E,a));
             //container.addAxiom(dataFactory.getOWLClassAssertionAxiom(C,a));
-            //abductionManager.setAbducibleContainer(container);
+
             //abductionManager.setSolverSpecificParameters("");
 
 //            abductionManager.solveAbduction();
@@ -200,31 +205,40 @@ public class Main {
 //            System.out.println(abductionManager.getExplanations());
 
             ThreadAbductionManager tam = factory.getThreadAbductionManager(ont, classAssertion);
+            tam.setTimeout(1);
+
+            //tam.setAbducibleContainer(container);
+            //tam.solveAbduction();
+
             AbductionMonitor monitor = tam.getAbductionMonitor();
-            Thread t = new Thread(tam);
-            t.start();
+            Thread thread = new Thread(tam);
+            thread.start();
 
             while(true){
                 try{
                     synchronized (monitor){
                         monitor.wait();
+
                         if (monitor.areNewExplanationsAvailable()){
-                            Set<ExplanationWrapper> expl = monitor.getExplanations();
+                            Set<ExplanationWrapper> expl = monitor.getUnprocessedExplanations();
                             System.out.println(expl);
                             monitor.markExplanationsAsProcessed();
                             monitor.clearExplanations();
                         }
+
                         if (monitor.isNewProgressAvailable()){
-                            double progress = monitor.getProgress();
+                            Percentage progress = monitor.getProgress();
                             String message = monitor.getStatusMessage();
-                            System.out.println(progress + "//" + message);
+                            System.out.println(progress.getValue() + "//" + message);
                             monitor.markProgressAsProcessed();
                         }
-                        if (monitor.getProgress() >= 100){
-                            t.interrupt();
+
+                        if (monitor.getProgress().getValue() >= 100){
+                            thread.interrupt();
                             monitor.notify();
                             break;
                         }
+
                         monitor.notify();
                     }
                 } catch(InterruptedException e){
@@ -268,7 +282,6 @@ public class Main {
         } finally {
             threadTimes.interrupt();
         }
-
 
     }
 

@@ -1,6 +1,6 @@
 package reasoner;
 
-import abduction_api.abducibles.AxiomAbducibleContainer;
+import abduction_api.abducible.AxiomAbducibleContainer;
 import api_implementation.MhsMxpAbducibleContainer;
 import api_implementation.MhsMxpAbductionManager;
 import common.ApiPrinter;
