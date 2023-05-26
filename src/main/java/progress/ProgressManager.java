@@ -4,8 +4,7 @@ import common.Configuration;
 
 public abstract class ProgressManager {
 
-    final protected int BAR_LENGTH = 30;
-    protected int currentProgressBlocks = 0;
+
     protected double currentPercentage = 0;
     protected String message;
 
@@ -14,9 +13,8 @@ public abstract class ProgressManager {
         processProgress();
     }
 
-    public void updateProgress(double percentage, String message) {
-        currentPercentage = percentage;
-        currentProgressBlocks = percentageToBlocks(percentage);
+    public void updateProgress(double newPercentage, String message) {
+        currentPercentage = newPercentage;
         this.message = message;
         processProgress();
     }
@@ -36,14 +34,11 @@ public abstract class ProgressManager {
 
     abstract protected void processProgress();
 
-    private int percentageToBlocks(double percentage){
-        return (int) Math.ceil(BAR_LENGTH * percentage);
-    }
 
     private void updateProgressAccordingToDepthLimit(int depth){
-        double remainingPercentage = 1 - currentPercentage;
+        double remainingPercentage = 99 - currentPercentage;
         int maxDepth = Configuration.DEPTH;
-        double percentageToFill = remainingPercentage / Math.pow(maxDepth, maxDepth - depth);
+        double percentageToFill = remainingPercentage / Math.pow(maxDepth, maxDepth - depth - 1);
         increaseProgress(percentageToFill);
     }
 
@@ -51,19 +46,16 @@ public abstract class ProgressManager {
         message = "Finished tree depth: " + depth;
     }
 
-    private void updateProgressAccordingToTimeLimit(double time){
-        double percentage = time / (double) Configuration.TIMEOUT;
-        currentPercentage = percentage;
-        currentProgressBlocks = percentageToBlocks(percentage);
+    protected void updateProgressAccordingToTimeLimit(double time){
+        currentPercentage = time / (double) Configuration.TIMEOUT * 100;
     }
 
     private void updateMessageAccordingToTimeLimit(double time){
         message = "Seconds left until time-out: " + (Configuration.TIMEOUT - time);
     }
 
-    private void increaseProgress(double percentage){
-        currentPercentage += percentage;
-        currentProgressBlocks += percentageToBlocks(percentage);
+    protected void increaseProgress(double percentageToAdd){
+        currentPercentage += percentageToAdd;
     }
 
 }

@@ -15,7 +15,7 @@ public class ApiProgressManager extends ProgressManager {
         int percentage = (int) Math.round(currentPercentage);
         try {
             if (abductionManager.isMultithread())
-                abductionManager.updateProgress(abductionManager.getAbductionMonitor(), new Percentage(percentage), message);
+                abductionManager.updateProgress(new Percentage(percentage), message);
         } catch(InterruptedException ignored) {}
     }
 
