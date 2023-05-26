@@ -1,11 +1,7 @@
 package api_implementation;
 
-import abduction_api.abducible.AbducibleContainer;
-import abduction_api.abducible.ExplanationConfigurator;
-import abduction_api.exception.CommonException;
-import abduction_api.exception.InvalidObservationException;
-import abduction_api.exception.InvalidSolverParameterException;
-import abduction_api.exception.MultiObservationException;
+import abduction_api.abducible.*;
+import abduction_api.exception.*;
 import abduction_api.manager.ExplanationWrapper;
 import abduction_api.manager.MultiObservationManager;
 import abduction_api.manager.ThreadAbductionManager;
@@ -31,7 +27,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     final AbductionMonitor abductionMonitor = new AbductionMonitor();
 
     OWLOntology backgroundKnowledge;
-    Set<OWLAxiom> observations;
+    Set<OWLAxiom> observations = new HashSet<>();
 
     Set<ExplanationWrapper> explanations = new HashSet<>();
     String message = "";
@@ -191,14 +187,15 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
         logs = new StringBuilder();
     }
 
-    private void setupSolver(){
+    private void setupSolver() {
 
         loader = new ApiLoader(this);
+        ApiPrinter printer = new ApiPrinter(this);
 
         try {
             loader.initialize(ReasonerType.JFACT);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception e){
+            printer.logError("An error occurred while initialising the internal reasoner: ",e);
         }
 
         reasonerManager = new ReasonerManager(loader);
@@ -210,10 +207,9 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
         timer.start();
         long currentTimeMillis = System.currentTimeMillis();
 
-        solver = new HybridSolver(timer, currentTimeMillis, explanationManager, progressManager,
-                new ApiPrinter(this));
-
         setSolverConfiguration();
+
+        solver = new HybridSolver(timer, currentTimeMillis, explanationManager, progressManager, printer);
 
     }
 
@@ -245,12 +241,30 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
         Configuration.MHS_MODE = pureMhs;
         Configuration.STRICT_RELEVANCE = strictRelevance;
 
-        if (depth > 0) Configuration.DEPTH = depth;
-        if (timeout > 0) Configuration.TIMEOUT = (long) timeout;
+        setDepthInConfiguration();
+        setTimeoutInConfiguration();
 
-        if (abducibles == null)
+        if (configurator == null)
             return;
 
+        setExplanationConfiguration();
+    }
+
+    private void setDepthInConfiguration() {
+        if (depth == 0)
+            Configuration.DEPTH = null;
+        else if (depth > 0)
+            Configuration.DEPTH = depth;
+    }
+
+    private void setTimeoutInConfiguration() {
+        if (timeout == 0)
+            Configuration.TIMEOUT = null;
+        if (timeout > 0)
+            Configuration.TIMEOUT = (long) timeout;
+    }
+
+    private void setExplanationConfiguration() {
         Configuration.LOOPING_ALLOWED = configurator.areLoopsAllowed();
         Configuration.ROLES_IN_EXPLANATIONS_ALLOWED = configurator.areRoleAssertionsAllowed();
         Configuration.NEGATION_ALLOWED = configurator.areConceptComplementsAllowed();
@@ -259,9 +273,19 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
 
     @Override
     public void setAbducibleContainer(AbducibleContainer abducibles) {
-        if (! (abducibles instanceof MhsMxpAbducibleContainer))
+
+        if (abducibles instanceof MhsMxpAbducibleContainer)
+            this.abducibles = (MhsMxpAbducibleContainer) abducibles;
+
+        else if (abducibles instanceof SymbolAbducibleContainer == abducibles instanceof AxiomAbducibleContainer)
             throw new CommonException("Abducible container type not compatible with abduction manager!");
-        this.abducibles = (MhsMxpAbducibleContainer) abducibles;
+
+        else if (abducibles instanceof SymbolAbducibleContainer)
+            this.abducibles = ApiObjectConverter.convertSymbolAbducibles(abducibles);
+
+        else
+            this.abducibles = ApiObjectConverter.convertAxiomAbducibles(abducibles);
+
     }
 
     @Override
@@ -276,10 +300,26 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
 
     @Override
     public void setExplanationConfigurator(ExplanationConfigurator configurator) {
-        if (! (configurator instanceof MhsMxpExplanationConfigurator))
+
+        if (configurator instanceof MhsMxpExplanationConfigurator){
+            this.configurator = (MhsMxpExplanationConfigurator) configurator;
+            return;
+        }
+
+        else if (configuratorImplementsIncompatibleInterfaces(configurator))
             throw new CommonException("Explanation configurator type not compatible with abduction manager!");
-        this.configurator = (MhsMxpExplanationConfigurator) configurator;
+
+        this.configurator = ApiObjectConverter.attemptConfiguratorConversion(configurator);
+
     }
+
+    private boolean configuratorImplementsIncompatibleInterfaces(ExplanationConfigurator configurator){
+        return configurator instanceof ConceptExplanationConfigurator ||
+                !(configurator instanceof ComplexConceptExplanationConfigurator) ||
+                !(configurator instanceof RoleExplanationConfigurator);
+    }
+
+
 
     @Override
     public void run() {
