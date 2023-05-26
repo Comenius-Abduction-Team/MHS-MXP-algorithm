@@ -1,5 +1,6 @@
 import abduction_api.abducible.SymbolAbducibleContainer;
 import abduction_api.manager.ExplanationWrapper;
+import abduction_api.manager.MultiObservationManager;
 import abduction_api.manager.ThreadAbductionManager;
 import abduction_api.monitor.AbductionMonitor;
 import abduction_api.monitor.Percentage;
@@ -7,7 +8,6 @@ import algorithms.ISolver;
 import algorithms.hybrid.ConsoleExplanationManager;
 import algorithms.hybrid.HybridSolver;
 import api_implementation.MhsMxpAbductionFactory;
-import api_implementation.MhsMxpAbductionManager;
 import application.Application;
 import application.ExitCode;
 import common.ConsolePrinter;
@@ -22,13 +22,14 @@ import reasoner.*;
 import timer.ThreadTimes;
 
 import java.io.*;
+import java.util.Collections;
 import java.util.Set;
 import java.util.logging.Logger;
 
 public class Main {
 
     /** whether the solver is being run from an IDE*/
-    private static final boolean TESTING = false;
+    private static final boolean TESTING = true;
     /** whether the solver is being run from an IDE through the API*/
     private static final boolean API = true;
 
@@ -204,13 +205,17 @@ public class Main {
 //            abductionManager.solveAbduction();
 //            System.out.println(abductionManager.getExplanations());
 
-            ThreadAbductionManager tam = factory.getThreadAbductionManager(ont, classAssertion);
-            tam.setTimeout(1);
+            MultiObservationManager m = factory.getMultiObservationAbductionManager(ont, Collections.singleton(classAssertion));
+            m.setTimeout(2);
+            m.setSolverSpecificParameters("-d 3");
 
             //tam.setAbducibleContainer(container);
             //tam.solveAbduction();
 
+            ThreadAbductionManager tam = (ThreadAbductionManager) m;
             AbductionMonitor monitor = tam.getAbductionMonitor();
+            monitor.setWaitLimit(1000);
+
             Thread thread = new Thread(tam);
             thread.start();
 
@@ -229,7 +234,7 @@ public class Main {
                         if (monitor.isNewProgressAvailable()){
                             Percentage progress = monitor.getProgress();
                             String message = monitor.getStatusMessage();
-                            System.out.println(progress.getValue() + "//" + message);
+                            System.out.println(progress + "//" + message);
                             monitor.markProgressAsProcessed();
                         }
 

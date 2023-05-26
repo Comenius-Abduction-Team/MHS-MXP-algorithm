@@ -139,13 +139,8 @@ public class HybridSolver implements ISolver {
             explanationManager.processExplanations(message);
         }
 
- /*       else if (reasonerManager.isOntologyWithLiteralsConsistent(abd_literals.getOwlAxioms(), ontology)) {
-            //tato pociatocna podmienka v MHS-MXP algoritme nevystupuje
-            message = "MESSAGE: no conflicts, consistent with abducibles";
-            makeFinalLog(message);
-        }*/
-
         else {
+            reasonerManager.isOntologyWithLiteralsConsistent(abd_literals.getOwlAxioms(), ontology);
             trySolve();
         }
 
@@ -154,13 +149,15 @@ public class HybridSolver implements ISolver {
     }
 
     private void trySolve() throws OWLOntologyStorageException, OWLOntologyCreationException {
+        String message = null;
         try {
             startSolving();
         } catch (Throwable e) {
             makeErrorAndPartialLog(e);
+            message = "An error occured!";
             throw e;
         } finally {
-            explanationManager.processExplanations(null);
+            explanationManager.processExplanations(message);
         }
     }
 

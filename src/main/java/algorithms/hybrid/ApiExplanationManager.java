@@ -22,8 +22,7 @@ public class ApiExplanationManager extends ConsoleExplanationManager {
         possibleExplanations.add(explanation);
         try {
             if (abductionManager.isMultithread())
-                abductionManager.sendExplanation(abductionManager.getAbductionMonitor(),
-                        explanation.createExplanationWrapper());
+                abductionManager.sendExplanation(explanation.createExplanationWrapper());
         } catch(InterruptedException ignored){}
     }
 

@@ -1,7 +1,6 @@
 package reasoner;
 
 import abduction_api.abducible.AxiomAbducibleContainer;
-import abduction_api.abducible.SymbolAbducibleContainer;
 import api_implementation.MhsMxpAbducibleContainer;
 import api_implementation.MhsMxpAbductionManager;
 import api_implementation.MhsMxpSymbolAbducibleContainer;
