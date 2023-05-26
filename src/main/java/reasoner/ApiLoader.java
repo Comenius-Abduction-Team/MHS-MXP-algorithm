@@ -1,8 +1,10 @@
 package reasoner;
 
 import abduction_api.abducible.AxiomAbducibleContainer;
+import abduction_api.abducible.SymbolAbducibleContainer;
 import api_implementation.MhsMxpAbducibleContainer;
 import api_implementation.MhsMxpAbductionManager;
+import api_implementation.MhsMxpSymbolAbducibleContainer;
 import common.ApiPrinter;
 import models.Abducibles;
 import models.Individuals;
@@ -63,12 +65,21 @@ public class ApiLoader extends Loader {
     @Override
     protected void loadAbducibles(){
         MhsMxpAbducibleContainer container = abductionManager.getAbducibleContainer();
+
         if (container == null || container.isEmpty()){
             abducibles = new Abducibles(this);
             return;
         }
+
         if (abductionManager.getAbducibleContainer() instanceof AxiomAbducibleContainer)
             isAxiomBasedAbduciblesOnInput = true;
+
+        if (abductionManager.getAbducibleContainer() instanceof MhsMxpSymbolAbducibleContainer){
+            MhsMxpSymbolAbducibleContainer converted = (MhsMxpSymbolAbducibleContainer) container;
+            if (converted.getIndividuals().isEmpty())
+                getOntology().getIndividualsInSignature().forEach(converted::addSymbol);
+        }
+
         abducibles = abductionManager.getAbducibleContainer().exportAbducibles(this);
     }
 }
