@@ -1,7 +1,5 @@
 package parser;
 
-import application.Application;
-import application.ExitCode;
 import common.Configuration;
 import common.DLSyntax;
 import reasoner.ReasonerType;

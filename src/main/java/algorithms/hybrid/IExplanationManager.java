@@ -1,8 +1,6 @@
 package algorithms.hybrid;
 
-import file_logger.FileLogger;
 import models.Explanation;
-import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;

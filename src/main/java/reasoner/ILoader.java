@@ -8,7 +8,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.knowledgeexploration.OWLKnowledgeExplorerReasoner;
 
-
 public interface ILoader {
 
     void initialize(ReasonerType reasonerType) throws Exception;

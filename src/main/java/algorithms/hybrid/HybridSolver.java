@@ -11,7 +11,6 @@ import models.Literals;
 import org.semanticweb.owlapi.model.*;
 
 import progress.IProgressManager;
-import progress.ProgressManager;
 import reasoner.AxiomManager;
 import reasoner.ILoader;
 import reasoner.IReasonerManager;
@@ -68,34 +67,6 @@ public class HybridSolver implements ISolver {
         this.threadTimes = threadTimes;
         this.currentTimeMillis = currentTimeMillis;
     }
-
-//    public HybridSolver(ThreadTimes threadTimes, long currentTimeMillis,
-//                        ConsoleExplanationManager explanationManager, ConsoleProgressManager progressManager) {
-//
-//        System.out.println();
-//        System.out.println(String.join("\n", getInfo()));
-//        System.out.println();
-//
-//        this.explanationManager = explanationManager;
-//        explanationManager.setSolver(this);
-//
-//        this.progressManager = progressManager;
-//
-//        this.threadTimes = threadTimes;
-//        this.currentTimeMillis = currentTimeMillis;
-//    }
-//
-//    public HybridSolver(ThreadTimes threadTimes, long currentTimeMillis,
-//                        ApiExplanationManager explanationManager, ApiProgressManager progressManager) {
-//
-//        this.explanationManager = explanationManager;
-//        explanationManager.setSolver(this);
-//
-//        this.progressManager = progressManager;
-//
-//        this.threadTimes = threadTimes;
-//        this.currentTimeMillis = currentTimeMillis;
-//    }
 
     public IExplanationManager getExplanationManager(){
         return explanationManager;
