@@ -2,7 +2,11 @@ package progress;
 
 import common.Configuration;
 
+import java.text.DecimalFormat;
+
 public abstract class ProgressManager implements IProgressManager {
+
+    private static final DecimalFormat formatter = new DecimalFormat("0.00");
 
     protected double currentPercentage = 0;
     protected String message;
@@ -51,7 +55,7 @@ public abstract class ProgressManager implements IProgressManager {
     }
 
     private void updateMessageAccordingToTimeLimit(double time){
-        message = "Seconds left until time-out: " + (Configuration.TIMEOUT - time);
+        message = "Seconds left until time-out: " + formatter.format(Math.max((Configuration.TIMEOUT - time), 0.0));
     }
 
     protected void increaseProgress(double percentageToAdd){
