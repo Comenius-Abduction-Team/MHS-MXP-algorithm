@@ -13,10 +13,12 @@ public class ConsoleExplanationManager extends ExplanationManager {
         printer = new ConsolePrinter(null);
     }
 
+    @Override
     public void addPossibleExplanation(Explanation explanation) {
         possibleExplanations.add(explanation);
     }
 
+    @Override
     public void processExplanations(String message) throws OWLOntologyCreationException, OWLOntologyStorageException {
         try{
             showExplanations();

@@ -3,7 +3,7 @@ package common;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ConsolePrinter extends Printer {
+public class ConsolePrinter implements IPrinter {
 
     private final Logger logger;
 

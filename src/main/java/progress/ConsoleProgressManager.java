@@ -8,6 +8,7 @@ public class ConsoleProgressManager extends ProgressManager {
 
     private int currentProgressBlocks = 0;
 
+    @Override
     protected void processProgress() {
         StringBuilder builder = buildProgressBar(currentProgressBlocks, message);
         System.out.println(builder);
@@ -25,7 +26,7 @@ public class ConsoleProgressManager extends ProgressManager {
             else
                 builder.append(' ');
         }
-        builder.append(BAR_BOUNDS_SYMBOL).append("   ").append(message);
+        builder.append(BAR_BOUNDS_SYMBOL).append("   ").append(message).append(" ");
         return builder;
     }
 

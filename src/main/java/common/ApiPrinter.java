@@ -2,7 +2,7 @@ package common;
 
 import api_implementation.MhsMxpAbductionManager;
 
-public class ApiPrinter extends Printer{
+public class ApiPrinter implements IPrinter {
 
     private final MhsMxpAbductionManager abductionManager;
 

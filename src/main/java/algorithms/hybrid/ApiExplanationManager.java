@@ -8,7 +8,7 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import reasoner.ILoader;
 import reasoner.IReasonerManager;
 
-public class ApiExplanationManager extends ConsoleExplanationManager {
+public class ApiExplanationManager extends ExplanationManager {
 
     private final MhsMxpAbductionManager abductionManager;
 

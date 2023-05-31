@@ -1,7 +1,7 @@
 package reasoner;
 
 import common.LogMessage;
-import common.Printer;
+import common.IPrinter;
 import models.Abducibles;
 import models.Individuals;
 import models.Observation;
@@ -32,7 +32,7 @@ public abstract class Loader implements ILoader {
     protected boolean isMultipleObservationOnInput = false;
     protected boolean isAxiomBasedAbduciblesOnInput = false;
 
-    protected Printer printer;
+    protected IPrinter printer;
 
     protected void loadReasoner(ReasonerType reasonerType) {
         try {

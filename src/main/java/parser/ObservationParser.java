@@ -1,9 +1,7 @@
 package parser;
 
-import application.Application;
-import application.ExitCode;
 import common.Configuration;
-import common.Printer;
+import common.IPrinter;
 import org.semanticweb.owlapi.model.*;
 import reasoner.Loader;
 
@@ -12,7 +10,7 @@ import java.util.*;
 public abstract class ObservationParser implements IObservationParser {
 
     protected Loader loader;
-    protected Printer printer;
+    protected IPrinter printer;
 
     public ObservationParser(Loader loader){
         this.loader = loader;

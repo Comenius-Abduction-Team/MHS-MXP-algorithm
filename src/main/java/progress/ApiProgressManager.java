@@ -11,6 +11,7 @@ public class ApiProgressManager extends ProgressManager {
         this.abductionManager = abductionManager;
     }
 
+    @Override
     protected void processProgress() {
         int percentage = (int) Math.round(currentPercentage);
         try {

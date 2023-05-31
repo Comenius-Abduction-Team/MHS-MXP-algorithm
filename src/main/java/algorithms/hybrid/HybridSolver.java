@@ -4,12 +4,13 @@ import algorithms.ISolver;
 import com.google.common.collect.Iterables;
 import common.Configuration;
 
-import common.Printer;
+import common.IPrinter;
 import models.Abducibles;
 import models.Explanation;
 import models.Literals;
 import org.semanticweb.owlapi.model.*;
 
+import progress.IProgressManager;
 import progress.ProgressManager;
 import reasoner.AxiomManager;
 import reasoner.ILoader;
@@ -29,8 +30,8 @@ public class HybridSolver implements ISolver {
     private IReasonerManager reasonerManager;
     private Literals abd_literals;
     private ModelExtractor modelExtractor;
-    private final ExplanationManager explanationManager;
-    private final ProgressManager progressManager;
+    private final IExplanationManager explanationManager;
+    private final IProgressManager progressManager;
     private SetDivider setDivider;
     private Set<Set<OWLAxiom>> pathsInCertainDepth = new HashSet<>();
 
@@ -52,7 +53,7 @@ public class HybridSolver implements ISolver {
     private Integer currentDepth;
 
     public HybridSolver(ThreadTimes threadTimes, long currentTimeMillis,
-                        ExplanationManager explanationManager, ProgressManager progressManager, Printer printer) {
+                        IExplanationManager explanationManager, IProgressManager progressManager, IPrinter printer) {
 
         String info = String.join("\n", getInfo());
         printer.print("");
@@ -96,7 +97,7 @@ public class HybridSolver implements ISolver {
 //        this.currentTimeMillis = currentTimeMillis;
 //    }
 
-    public ExplanationManager getExplanationManager(){
+    public IExplanationManager getExplanationManager(){
         return explanationManager;
     }
 
@@ -554,6 +555,9 @@ public class HybridSolver implements ISolver {
         conflictLiterals.getOwlAxioms().addAll(conflictC2.getLiterals().getOwlAxioms());
 
         while (!isOntologyWithLiteralsConsistent(conflictLiterals.getOwlAxioms())) {
+
+            if ((Configuration.DEPTH == null || Configuration.DEPTH == 0 || Configuration.DEPTH == Integer.MAX_VALUE) && Configuration.TIMEOUT != null)
+                progressManager.updateProgress(currentDepth, threadTimes.getTotalUserTimeInSec());
 
             if (isTimeout()) break;
 

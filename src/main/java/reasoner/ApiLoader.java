@@ -49,6 +49,7 @@ public class ApiLoader extends Loader {
         ontologyManager.addAxioms(newOntology, oldOntology.getAxioms());
     }
 
+    @Override
     protected void loadObservation() throws Exception {
         namedIndividuals = new Individuals();
         IObservationParser observationParser = new ApiObservationParser(this, abductionManager);
