@@ -1,23 +1,32 @@
 package parser;
 
-import application.Application;
-import application.ExitCode;
+import common.Configuration;
+import common.IPrinter;
 import org.semanticweb.owlapi.model.*;
 import reasoner.Loader;
 
 import java.util.*;
-import java.util.logging.Logger;
 
 public abstract class ObservationParser implements IObservationParser {
 
-    protected Logger logger = Logger.getLogger(ObservationParser.class.getSimpleName());
     protected Loader loader;
+    protected IPrinter printer;
 
     public ObservationParser(Loader loader){
         this.loader = loader;
     }
 
     protected abstract void createOntologyFromObservation() throws OWLOntologyCreationException, OWLOntologyStorageException;
+
+    @Override
+    public void parse() throws Exception {
+        try{
+            createOntologyFromObservation();
+        } catch (OWLOntologyCreationException e){
+            throw new OWLOntologyCreationException("Invalid format of observation");
+        }
+        printer.logInfo("Observation: ".concat(Configuration.OBSERVATION));
+    }
 
     protected void processAxiomsFromObservation(OWLOntology observationOntology){
         Set<OWLAxiom> set = observationOntology.getAxioms();
@@ -33,8 +42,8 @@ public abstract class ObservationParser implements IObservationParser {
         if(resultingObservation.size() > 0){
             chooseProcessingObservationAccordingType(resultingObservation);
         } else {
-            System.err.println("In -o is not founded any correct observation - class assertion, object property assertion or negative object property assertion.");
-            Application.finish(ExitCode.ERROR);
+            String message = "In -o is not founded any correct observation - class assertion, object property assertion or negative object property assertion.";
+            throw new RuntimeException(message);
         }
     }
 
@@ -151,8 +160,8 @@ public abstract class ObservationParser implements IObservationParser {
         }
 
         if(union == null){
-            System.err.println("In -o one of the multiple observations is different from class assertion, object property assertion or negative object property assertion axiom.");
-            Application.finish(ExitCode.ERROR);
+            String message = "In -o one of the multiple observations is different from class assertion, object property assertion or negative object property assertion axiom.";
+            throw new RuntimeException(message);
         }
         return union;
     }

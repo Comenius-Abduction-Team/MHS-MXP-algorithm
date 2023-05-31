@@ -2,7 +2,6 @@ package common;
 
 import reasoner.ReasonerType;
 
-import java.awt.geom.NoninvertibleTransformException;
 import java.util.ArrayList;
 
 public class Configuration {

@@ -1,20 +1,23 @@
 package progress;
 
-import apiImplementation.HybridAbductionManager;
+import abduction_api.monitor.Percentage;
+import api_implementation.MhsMxpAbductionManager;
 
 public class ApiProgressManager extends ProgressManager {
 
-    HybridAbductionManager abductionManager;
+    MhsMxpAbductionManager abductionManager;
 
-    public ApiProgressManager(HybridAbductionManager abductionManager){
+    public ApiProgressManager(MhsMxpAbductionManager abductionManager){
         this.abductionManager = abductionManager;
     }
 
-    protected void processProgress(){
-        if (abductionManager.getAbductionMonitor() != null)
-            abductionManager.updateProgress(abductionManager.getAbductionMonitor(), currentProgress, message);
+    @Override
+    protected void processProgress() {
+        int percentage = (int) Math.round(currentPercentage);
+        try {
+            if (abductionManager.isMultithread())
+                abductionManager.updateProgress(new Percentage(percentage), message);
+        } catch(InterruptedException ignored) {}
     }
-
-
 
 }

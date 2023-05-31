@@ -8,21 +8,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Printer {
+public class StringFactory {
 
-    public static String print(OWLAxiom owlAxiom) {
+    public static String getRepresentation(OWLAxiom owlAxiom) {
         if (owlAxiom instanceof OWLClassAssertionAxiom) {
-            return Printer.getClassAssertionAxiom(owlAxiom).concat(DLSyntax.LEFT_PARENTHESES).
-                    concat(Printer.getNamedIndividual(owlAxiom)).concat(DLSyntax.RIGHT_PARENTHESES);
+            return StringFactory.getClassAssertionAxiom(owlAxiom).concat(DLSyntax.LEFT_PARENTHESES).
+                    concat(StringFactory.getNamedIndividual(owlAxiom)).concat(DLSyntax.RIGHT_PARENTHESES);
 //            return Printer.getNamedIndividual(owlAxiom).concat(DLSyntax.DELIMITER_ASSERTION).concat(Printer.getClassAssertionAxiom(owlAxiom));
         }
-        return Printer.getObjectPropertyAssertionAxiom(owlAxiom);
+        return StringFactory.getObjectPropertyAssertionAxiom(owlAxiom);
     }
 
-    public static String print(List<OWLAxiom> axioms){
+    public static String getRepresentation(List<OWLAxiom> axioms){
         List<String> result = new ArrayList<>();
         for (OWLAxiom owlAxiom : axioms) {
-            result.add(Printer.print(owlAxiom));
+            result.add(StringFactory.getRepresentation(owlAxiom));
         }
         return "{" + StringUtils.join(result, ",") + "}";
     }

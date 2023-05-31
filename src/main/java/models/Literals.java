@@ -1,6 +1,6 @@
 package models;
 
-import common.Printer;
+import common.StringFactory;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import java.util.HashSet;
@@ -31,7 +31,7 @@ public class Literals {
     public String toString() {
         StringBuilder result = new StringBuilder();
         for (OWLAxiom owlAxiom : owlAxioms) {
-            result.append(Printer.print(owlAxiom)).append(";");
+            result.append(StringFactory.getRepresentation(owlAxiom)).append(";");
         }
         return result.toString();
     }

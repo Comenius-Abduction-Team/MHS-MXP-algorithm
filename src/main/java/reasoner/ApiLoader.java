@@ -1,21 +1,25 @@
 package reasoner;
 
-import abduction_api.abducibles.AxiomAbducibleContainer;
-import apiImplementation.HybridAbducibleContainer;
-import apiImplementation.HybridAbductionManager;
+import abduction_api.abducible.AxiomAbducibleContainer;
+import api_implementation.MhsMxpAbducibleContainer;
+import api_implementation.MhsMxpAbductionManager;
+import api_implementation.MhsMxpSymbolAbducibleContainer;
+import common.ApiPrinter;
 import models.Abducibles;
 import models.Individuals;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import parser.ApiObservationParser;
 import parser.IObservationParser;
+import parser.PrefixesParser;
 
 public class ApiLoader extends Loader {
 
-    private final HybridAbductionManager abductionManager;
+    private final MhsMxpAbductionManager abductionManager;
 
-    public ApiLoader(HybridAbductionManager abductionManager){
+    public ApiLoader(MhsMxpAbductionManager abductionManager){
         this.abductionManager = abductionManager;
+        printer = new ApiPrinter(abductionManager);
     }
 
     @Override
@@ -28,7 +32,7 @@ public class ApiLoader extends Loader {
     @Override
     protected void setupOntology() throws OWLOntologyCreationException {
 
-        ontology = this.abductionManager.getKnowledgeBase();
+        ontology = this.abductionManager.getBackgroundKnowledge();
         ontologyManager = ontology.getOWLOntologyManager();
 
         observationOntologyFormat = ontology.getFormat();
@@ -45,6 +49,7 @@ public class ApiLoader extends Loader {
         ontologyManager.addAxioms(newOntology, oldOntology.getAxioms());
     }
 
+    @Override
     protected void loadObservation() throws Exception {
         namedIndividuals = new Individuals();
         IObservationParser observationParser = new ApiObservationParser(this, abductionManager);
@@ -52,17 +57,29 @@ public class ApiLoader extends Loader {
     }
 
     @Override
-    protected void loadPrefixes() {}
+    protected void loadPrefixes() {
+        PrefixesParser prefixesParser = new PrefixesParser(observationOntologyFormat);
+        prefixesParser.parse();
+    }
 
     @Override
     protected void loadAbducibles(){
-        HybridAbducibleContainer container = abductionManager.getAbducibles();
+        MhsMxpAbducibleContainer container = abductionManager.getAbducibleContainer();
+
         if (container == null || container.isEmpty()){
             abducibles = new Abducibles(this);
             return;
         }
-        if (abductionManager.getAbducibles() instanceof AxiomAbducibleContainer)
+
+        if (abductionManager.getAbducibleContainer() instanceof AxiomAbducibleContainer)
             isAxiomBasedAbduciblesOnInput = true;
-        abducibles = abductionManager.getAbducibles().exportAbducibles(this);
+
+        if (abductionManager.getAbducibleContainer() instanceof MhsMxpSymbolAbducibleContainer){
+            MhsMxpSymbolAbducibleContainer converted = (MhsMxpSymbolAbducibleContainer) container;
+            if (converted.getIndividuals().isEmpty())
+                getOntology().getIndividualsInSignature().forEach(converted::addSymbol);
+        }
+
+        abducibles = abductionManager.getAbducibleContainer().exportAbducibles(this);
     }
 }

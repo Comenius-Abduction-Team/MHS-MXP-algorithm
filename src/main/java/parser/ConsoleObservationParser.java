@@ -1,28 +1,20 @@
 package parser;
 
 import common.Configuration;
+import common.ConsolePrinter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 import reasoner.Loader;
 
-import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ConsoleObservationParser extends ObservationParser {
 
     public ConsoleObservationParser(Loader loader) {
         super(loader);
-    }
-
-    @Override
-    public void parse() throws Exception {
-        try{
-            createOntologyFromObservation();
-        } catch (OWLOntologyCreationException e){
-            throw new OWLOntologyCreationException("Invalid format of observation");
-        }
-        logger.log(Level.INFO, "Observation: ".concat(Configuration.OBSERVATION));
+        printer = new ConsolePrinter(Logger.getLogger(ObservationParser.class.getSimpleName()));
     }
 
     @Override

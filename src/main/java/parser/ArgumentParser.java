@@ -1,7 +1,5 @@
 package parser;
 
-import application.Application;
-import application.ExitCode;
 import common.Configuration;
 import common.DLSyntax;
 import reasoner.ReasonerType;
@@ -15,8 +13,8 @@ public class ArgumentParser {
     public void parse(String[] args) {
 
         if (args.length != 1){
-            System.err.println("Wrong number of argument for main function: Run program with one configuration input file as argument");
-            Application.finish(ExitCode.ERROR);
+            String message = "Wrong number of argument for main function: Run program with one configuration input file as argument";
+            throw new RuntimeException(message);
         }
         Configuration.INPUT_FILE_NAME = new File(args[0]).getName().split("\\.")[0];
         ArrayList<String[]> lines = read_input_file(args[0]);
@@ -54,8 +52,8 @@ public class ArgumentParser {
             switch(new_line) {
                 case "-f:":
                     if (!(new File(next).exists())){
-                        System.err.println("Could not open -f file " + next);
-                        Application.finish(ExitCode.ERROR);
+                        String message = "Could not open -f file " + next;
+                        throw new RuntimeException(message);
                     }
                     Configuration.INPUT_ONT_FILE = next;
                     break;
@@ -68,8 +66,8 @@ public class ArgumentParser {
                     if (path.matches("^[\\w\\\\/]*[\\w]+$")) {
                         Configuration.OUTPUT_PATH = path;
                     } else {
-                        System.err.println("Wrong output path -output " + path + "\nOutput path should contain only alphanumeric symbols, _ and separators (\\,/) and cannot end with a separator");
-                        Application.finish(ExitCode.ERROR);
+                        String message = "Wrong output path -output " + path + "\nOutput path should contain only alphanumeric symbols, _ and separators (\\,/) and cannot end with a separator";
+                        throw new RuntimeException(message);
                     }
                     break;
 
@@ -80,8 +78,8 @@ public class ArgumentParser {
 //                        Configuration.REASONER = ReasonerType.valueOf(next.toUpperCase());
 //                    }
 //                    catch (IllegalArgumentException e){
-//                        System.err.println("Reasoner type -r " + next + " is unknown, the only allowed reasoners are hermit|pellet|jfact");
-//                        Application.finish(ExitCode.ERROR);
+//                        String message = "Reasoner type -r " + next + " is unknown, the only allowed reasoners are hermit|pellet|jfact");
+//                        throw new RuntimeException(message);
 //                    }
 //                    break;
 
@@ -90,8 +88,8 @@ public class ArgumentParser {
                         Configuration.DEPTH = Integer.valueOf(next);
                     }
                     catch (NumberFormatException e) {
-                        System.err.println("Wrong tree depth -d " + next + ", choose a whole number value");
-                        Application.finish(ExitCode.ERROR);
+                        String message = "Wrong tree depth -d " + next + ", choose a whole number value";
+                        throw new RuntimeException(message);
                     }
                     break;
                 case "-t:":
@@ -99,8 +97,8 @@ public class ArgumentParser {
                         Configuration.TIMEOUT = Long.valueOf(next);
                     }
                     catch (NumberFormatException e) {
-                        System.err.println("Wrong timeout value -t " + next + ", choose a whole number value");
-                        Application.finish(ExitCode.ERROR);
+                        String message = "Wrong timeout value -t " + next + ", choose a whole number value";
+                        throw new RuntimeException(message);
                     }
                     break;
                 case "-aI:":
@@ -167,19 +165,19 @@ public class ArgumentParser {
                     break;
                 case "-abdF:":
                     if (!(new File(next).exists())){
-                        System.err.println("Could not open -abdF file " + next);
-                        Application.finish(ExitCode.ERROR);
+                        String message = "Could not open -abdF file " + next;
+                        throw new RuntimeException(message);
                     }
                     Configuration.ABDUCIBLES_FILE_NAME = next;
                     break;
                 default:
-                    System.err.println("Unknown option " + line[0] + " in input file");
-                    Application.finish(ExitCode.ERROR);
+                    String message = "Unknown option " + line[0] + " in input file";
+                    throw new RuntimeException(message);
             }
         }
         if (Configuration.INPUT_ONT_FILE.equals("") || Configuration.OBSERVATION.equals("")){
-            System.err.println("Input file -f and observation -o are both required argument");
-            Application.finish(ExitCode.ERROR);
+            String message = "Input file -f and observation -o are both required argument";
+            throw new RuntimeException(message);
         }
         if (Configuration.REASONER == null) {
             Configuration.REASONER = ReasonerType.JFACT;
@@ -191,8 +189,8 @@ public class ArgumentParser {
 
     private void add_prefix(String prefix){
         if (!prefix.matches("[a-zA-Z0-9]+: " + DLSyntax.IRI_REGEX)){
-            System.err.println("Prefix '" + prefix + "' does not match the form 'prefix_shortcut: prefix'");
-            Application.finish(ExitCode.ERROR);
+            String message = "Prefix '" + prefix + "' does not match the form 'prefix_shortcut: prefix'";
+            throw new RuntimeException(message);
         }
         Configuration.PREFIXES.add(prefix);
     }

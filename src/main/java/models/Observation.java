@@ -1,6 +1,6 @@
 package models;
 
-import common.Printer;
+import common.StringFactory;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
@@ -39,14 +39,14 @@ public class Observation {
     @Override
     public String toString() {
         if(axiomsInMultipleObservations == null || reductionIndividual == null){
-            return Printer.print(axiom);
+            return StringFactory.getRepresentation(axiom);
         }
         StringBuilder result = new StringBuilder();
         result.append("Reduced observation: ");
         result.append(axiom);
         result.append("\n Observation consist of multiple observations: ");
         for (OWLAxiom a : axiomsInMultipleObservations){
-            result.append(Printer.print(a));
+            result.append(StringFactory.getRepresentation(a));
         }
         result.append("\n");
         return result.toString();
