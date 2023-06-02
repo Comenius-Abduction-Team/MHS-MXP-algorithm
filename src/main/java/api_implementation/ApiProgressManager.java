@@ -1,7 +1,7 @@
-package progress;
+package api_implementation;
 
 import abduction_api.monitor.Percentage;
-import api_implementation.MhsMxpAbductionManager;
+import progress.ProgressManager;
 
 public class ApiProgressManager extends ProgressManager {
 

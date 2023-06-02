@@ -24,13 +24,13 @@ public class MhsMxpSymbolAbducibleContainer extends MhsMxpAbducibleContainer
     private Set<OWLObjectProperty> roles = new HashSet<>();
 
     @Override
-    public void setSymbols(Collection<OWLEntity> collection) throws SymbolAbducibleException {
+    public void setSymbols(Collection<OWLEntity> symbols) throws SymbolAbducibleException {
 
         Set<OWLClass> classes = new HashSet<>();
         Set<OWLNamedIndividual> individuals = new HashSet<>();
         Set<OWLObjectProperty> roles = new HashSet<>();
 
-        collection.forEach(entity -> addEntityToCorrectSet(entity, individuals, classes, roles));
+        symbols.forEach(entity -> addEntityToCorrectSet(entity, individuals, classes, roles));
 
         this.individuals = individuals;
         this.classes = classes;
@@ -72,7 +72,16 @@ public class MhsMxpSymbolAbducibleContainer extends MhsMxpAbducibleContainer
 
     @Override
     public void addSymbols(Collection<OWLEntity> symbols) throws SymbolAbducibleException {
-        symbols.forEach(this::addSymbol);
+
+        Set<OWLClass> classes = new HashSet<>();
+        Set<OWLNamedIndividual> individuals = new HashSet<>();
+        Set<OWLObjectProperty> roles = new HashSet<>();
+
+        symbols.forEach(entity -> addEntityToCorrectSet(entity, individuals, classes, roles));
+
+        this.classes.addAll(classes);
+        this.individuals.addAll(individuals);
+        this.roles.addAll(roles);
     }
 
     @Override

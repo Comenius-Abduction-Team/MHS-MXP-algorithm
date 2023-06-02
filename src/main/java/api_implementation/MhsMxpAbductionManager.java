@@ -6,14 +6,11 @@ import abduction_api.manager.ExplanationWrapper;
 import abduction_api.manager.MultiObservationManager;
 import abduction_api.manager.ThreadAbductionManager;
 import abduction_api.monitor.AbductionMonitor;
-import algorithms.hybrid.ApiExplanationManager;
 import algorithms.hybrid.HybridSolver;
-import common.ApiPrinter;
 import common.Configuration;
 import file_logger.FileLogger;
 import models.Explanation;
 import org.semanticweb.owlapi.model.*;
-import progress.ApiProgressManager;
 import reasoner.*;
 import timer.ThreadTimes;
 
@@ -24,7 +21,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
 
     private MhsMxpAbducibleContainer abducibles;
     private MhsMxpExplanationConfigurator configurator = new MhsMxpExplanationConfigurator();
-    final AbductionMonitor abductionMonitor = new AbductionMonitor();
+    private final AbductionMonitor abductionMonitor = new AbductionMonitor();
 
     OWLOntology backgroundKnowledge;
     Set<OWLAxiom> observations = new HashSet<>();
@@ -44,7 +41,6 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     ApiLoader loader;
     ReasonerManager reasonerManager;
     ThreadTimes timer;
-
 
     public boolean isMultithread() {
         return multithread;
@@ -66,7 +62,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
         setMultiAxiomObservation(observation);
     }
 
-    public void setExplanations(Collection<Explanation> explanations){
+    void setExplanations(Collection<Explanation> explanations){
         this.explanations = explanations.stream()
                                         .map(Explanation::createExplanationWrapper)
                                         .collect(Collectors.toSet());
@@ -86,7 +82,8 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     public void setObservation(OWLAxiom axiom) throws MultiObservationException, InvalidObservationException {
         if (checkObservationType(axiom))
             observations = Collections.singleton(axiom);
-        else throwInvalidObservationException(axiom);
+        else
+            throwInvalidObservationException(axiom);
     }
 
     private void throwInvalidObservationException(OWLAxiom axiom){
@@ -102,12 +99,14 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
 
     @Override
     public void setMultiAxiomObservation(Set<OWLAxiom> observation) throws InvalidObservationException {
-        observation.forEach(this::addSingleObservation);
+        Set<OWLAxiom> validObservations = new HashSet<>();
+        observation.forEach(axiom -> addObservationToSet(axiom, validObservations));
+        this.observations = validObservations;
     }
 
-    private void addSingleObservation(OWLAxiom axiom) throws MultiObservationException, InvalidObservationException {
+    private void addObservationToSet(OWLAxiom axiom, Set<OWLAxiom> set) throws MultiObservationException, InvalidObservationException {
         if (checkObservationType(axiom))
-            observations.add(axiom);
+            set.add(axiom);
         else throwInvalidObservationException(axiom);
     }
 
@@ -116,7 +115,8 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
         if (observations.isEmpty())
             return null;
         if (observations.size() > 1)
-            throw new MultiObservationException("There are multiple observations in this abduction manager.");
+            throw new MultiObservationException(
+                    "There are multiple observations in this abduction manager. Use getMultiAxiomObservation().");
         else return new ArrayList<>(observations).get(0);
     }
 
@@ -139,7 +139,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     public void setSolverSpecificParameters(String s) {
         if (s.equals(""))
             return;
-        String[] arguments = s.split(" ");
+        String[] arguments = s.split("\\s+");
             for (int i = 0; i < arguments.length; i++){
                 try {
                     switch (arguments[i]) {
@@ -163,6 +163,8 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
                     }
                 } catch(NumberFormatException e){
                     throw new InvalidSolverParameterException(arguments[i+1], "Invalid integer value");
+                } catch(ArrayIndexOutOfBoundsException e){
+                    throw new InvalidSolverParameterException(arguments[i], "Missing parameter value");
                 }
             }
     }
@@ -185,6 +187,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
         explanations = new HashSet<>();
         message = "";
         logs = new StringBuilder();
+        abductionMonitor.clearMonitor();
     }
 
     private void setupSolver() {
@@ -196,6 +199,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
             loader.initialize(ReasonerType.JFACT);
         } catch (Exception e){
             printer.logError("An error occurred while initialising the internal reasoner: ",e);
+            return;
         }
 
         reasonerManager = new ReasonerManager(loader);
@@ -216,8 +220,8 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     private void solve(){
         try {
             solver.solve(loader, reasonerManager);
-        } catch (Exception e) {
-            message = e.getMessage();
+        } catch (Throwable e) {
+            new ApiPrinter(this).logError("An error occured while solving: ", e);
         }
     }
 
@@ -270,7 +274,6 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
         Configuration.NEGATION_ALLOWED = configurator.areConceptComplementsAllowed();
     }
 
-
     @Override
     public void setAbducibleContainer(AbducibleContainer abducibles) {
 
@@ -306,26 +309,17 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
             return;
         }
 
-        else if (configuratorImplementsIncompatibleInterfaces(configurator))
+        else if (ApiObjectConverter.configuratorImplementsIncompatibleInterfaces(configurator))
             throw new CommonException("Explanation configurator type not compatible with abduction manager!");
 
         this.configurator = ApiObjectConverter.attemptConfiguratorConversion(configurator);
 
     }
 
-    private boolean configuratorImplementsIncompatibleInterfaces(ExplanationConfigurator configurator){
-        return configurator instanceof ConceptExplanationConfigurator ||
-                !(configurator instanceof ComplexConceptExplanationConfigurator) ||
-                !(configurator instanceof RoleExplanationConfigurator);
-    }
-
-
-
     @Override
     public void run() {
         synchronized (abductionMonitor){
             multithread = true;
-            abductionMonitor.clearMonitor();
             solveAbduction();
             multithread = false;
         }
@@ -360,12 +354,12 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
         this.strictRelevance = strictRelevance;
     }
 
-    public void appendToLog(String message){
+    void appendToLog(String message){
         logs.append(message);
         logs.append('\n');
     }
 
-    public void setMessage(String message){
+    void setMessage(String message){
         this.message = message;
     }
 }

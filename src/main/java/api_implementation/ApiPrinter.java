@@ -1,6 +1,6 @@
-package common;
+package api_implementation;
 
-import api_implementation.MhsMxpAbductionManager;
+import common.IPrinter;
 
 public class ApiPrinter implements IPrinter {
 

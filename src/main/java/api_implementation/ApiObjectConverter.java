@@ -53,4 +53,10 @@ public class ApiObjectConverter {
         return new MhsMxpAxiomAbducibleContainer(symbolAbducibles.getAxioms());
     }
 
+    static boolean configuratorImplementsIncompatibleInterfaces(ExplanationConfigurator configurator){
+        return configurator instanceof ConceptExplanationConfigurator ||
+                !(configurator instanceof ComplexConceptExplanationConfigurator) ||
+                !(configurator instanceof RoleExplanationConfigurator);
+    }
+
 }

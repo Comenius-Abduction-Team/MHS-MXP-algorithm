@@ -9,6 +9,7 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.knowledgeexploration.OWLKnowledgeExplorerReasoner;
+import parser.PrefixesParser;
 import uk.ac.manchester.cs.jfact.JFactFactory;
 
 import java.util.List;
@@ -89,7 +90,10 @@ public abstract class Loader implements ILoader {
 
     protected abstract void loadAbducibles();
 
-    protected abstract void loadPrefixes();
+    protected void loadPrefixes(){
+        PrefixesParser prefixesParser = new PrefixesParser(observationOntologyFormat);
+        prefixesParser.parse();
+    }
 
     public Abducibles getAbducibles(){
         return abducibles;

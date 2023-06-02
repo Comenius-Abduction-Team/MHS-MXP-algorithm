@@ -35,7 +35,7 @@ public class MhsMxpAxiomAbducibleContainer extends MhsMxpAbducibleContainer impl
                         || type == AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION
                         || type == AxiomType.OBJECT_PROPERTY_ASSERTION
         )
-            axioms.add(axiom);
+            set.add(axiom);
         else
             throw new AxiomAbducibleException(axiom);
     }
@@ -52,7 +52,9 @@ public class MhsMxpAxiomAbducibleContainer extends MhsMxpAbducibleContainer impl
 
     @Override
     public void addAxioms(Collection<OWLAxiom> axioms) throws AxiomAbducibleException {
-        axioms.forEach(axiom -> addAxiomToSet(axiom, this.axioms));
+        Set<OWLAxiom> newAxioms = new HashSet<>();
+        axioms.forEach(axiom -> addAxiomToSet(axiom, newAxioms));
+        this.axioms.addAll(newAxioms);
     }
 
     @Override

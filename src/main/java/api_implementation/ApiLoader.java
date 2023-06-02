@@ -1,17 +1,16 @@
-package reasoner;
+package api_implementation;
 
 import abduction_api.abducible.AxiomAbducibleContainer;
-import api_implementation.MhsMxpAbducibleContainer;
-import api_implementation.MhsMxpAbductionManager;
-import api_implementation.MhsMxpSymbolAbducibleContainer;
-import common.ApiPrinter;
 import models.Abducibles;
 import models.Individuals;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import parser.ApiObservationParser;
 import parser.IObservationParser;
 import parser.PrefixesParser;
+import reasoner.Loader;
+import reasoner.ReasonerType;
+
+import java.util.stream.Collectors;
 
 public class ApiLoader extends Loader {
 
@@ -57,29 +56,24 @@ public class ApiLoader extends Loader {
     }
 
     @Override
-    protected void loadPrefixes() {
-        PrefixesParser prefixesParser = new PrefixesParser(observationOntologyFormat);
-        prefixesParser.parse();
-    }
-
-    @Override
-    protected void loadAbducibles(){
+    protected void loadAbducibles() {
         MhsMxpAbducibleContainer container = abductionManager.getAbducibleContainer();
 
-        if (container == null || container.isEmpty()){
+        if (container == null || container.isEmpty()) {
             abducibles = new Abducibles(this);
             return;
         }
 
-        if (abductionManager.getAbducibleContainer() instanceof AxiomAbducibleContainer)
+        if (container instanceof AxiomAbducibleContainer)
             isAxiomBasedAbduciblesOnInput = true;
 
-        if (abductionManager.getAbducibleContainer() instanceof MhsMxpSymbolAbducibleContainer){
-            MhsMxpSymbolAbducibleContainer converted = (MhsMxpSymbolAbducibleContainer) container;
-            if (converted.getIndividuals().isEmpty())
-                getOntology().getIndividualsInSignature().forEach(converted::addSymbol);
-        }
+        abducibles = container.exportAbducibles(this);
 
-        abducibles = abductionManager.getAbducibleContainer().exportAbducibles(this);
+        if (container instanceof MhsMxpSymbolAbducibleContainer) {
+            MhsMxpSymbolAbducibleContainer converted = (MhsMxpSymbolAbducibleContainer) container;
+            if (converted.getIndividuals().isEmpty()) {
+                abducibles.addIndividuals(ontology.individualsInSignature().collect(Collectors.toList()));
+            }
+        }
     }
 }
