@@ -42,12 +42,6 @@ public class ConsoleLoader extends Loader {
     }
 
     @Override
-    protected void loadPrefixes(){
-        PrefixesParser prefixesParser = new PrefixesParser(observationOntologyFormat);
-        prefixesParser.parse();
-    }
-
-    @Override
     protected void loadAbducibles(){
         AbduciblesParser abduciblesParser = new AbduciblesParser(this);
         abducibles = abduciblesParser.parse();

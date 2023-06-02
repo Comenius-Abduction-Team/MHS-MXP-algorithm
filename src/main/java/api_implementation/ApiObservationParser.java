@@ -1,11 +1,9 @@
-package parser;
+package api_implementation;
 
-import api_implementation.MhsMxpAbductionManager;
-import common.ApiPrinter;
 import common.Configuration;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
-import reasoner.ApiLoader;
+import parser.ObservationParser;
 
 public class ApiObservationParser extends ObservationParser {
 

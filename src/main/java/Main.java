@@ -39,7 +39,7 @@ public class Main {
 
         if (TESTING){
             args = new String[1];
-            args[0] = "./in/testExtractingModels/pokus9_2.in";
+//            args[0] = "./in/testExtractingModels/pokus9_2.in";
 //        x[0] = "C:/Users/2018/Desktop/MHS-MXP-algorithmNEW/in/testExtractingModels/pokus9_1.in"; //modely problem
 //        x[0] = "C:/Users/2018/Desktop/MHS-MXP-algorithmNEW/in/testExtractingModels/pokus9_2.in";
 //        x[0] = "C:/Users/2018/Desktop/MHS-MXP-algorithmNEW/in/testExtractingModels/pokus9.in";
@@ -98,7 +98,7 @@ public class Main {
 //        x[0] = "C:/Users/2018/Desktop/MHS-MXP-algorithmNEW/in/testExtractingModels/input_19.in";
 //        x[0] = "C:/Users/2018/Desktop/new/MHS-MXP-algorithm/in/input_fam.in";
 //        x[0] = "C:/Users/2018/Desktop/MHS-MXP-algorithmNEW/in/multiple_obs/familyr2.in";
-//        x[0] = "C:/Users/2018/Desktop/MHS-MXP-algorithmNEW/in/multiple_obs/family.in";
+        args[0] = "./in/multiple_obs/family.in";
 //        x[0] = "C:/Users/2018/Desktop/new/MHS-MXP-algorithm/in/multiple_obs/tom1.in";
 
 //        x[0] = "C:/Users/2018/Desktop/MHS-MXP-algorithmNEW/in/ont_input11949.in";
@@ -168,7 +168,7 @@ public class Main {
 //        x[0] = "C:/Users/2018/Desktop/MHS-MXP-algorithmNEW/eval_2/mhs/in_ore_ont_16814_1_mhs.txt";
         }
 
-        else if (API){
+        if (API){
 
             MhsMxpAbductionFactory factory = MhsMxpAbductionFactory.getFactory();
 
@@ -206,8 +206,7 @@ public class Main {
 //            System.out.println(abductionManager.getExplanations());
 
             MultiObservationManager m = factory.getMultiObservationAbductionManager(ont, Collections.singleton(classAssertion));
-            m.setTimeout(2);
-            m.setSolverSpecificParameters("-d 3");
+            m.setSolverSpecificParameters("-d   3        -mhs  true");
 
             //tam.setAbducibleContainer(container);
             //tam.solveAbduction();
@@ -282,7 +281,7 @@ public class Main {
             solver.solve(loader, reasonerManager);
 
         } catch(RuntimeException e) {
-            new ConsolePrinter(logger).logError(e.getMessage(), null);
+            new ConsolePrinter(logger).logError("An error occurred: ", e);
             Application.finish(ExitCode.ERROR);
         } finally {
             threadTimes.interrupt();
