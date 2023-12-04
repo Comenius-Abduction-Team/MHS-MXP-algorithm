@@ -6,7 +6,6 @@ import abduction_api.manager.ExplanationWrapper;
 import abduction_api.manager.MultiObservationManager;
 import abduction_api.manager.ThreadAbductionManager;
 import abduction_api.monitor.AbductionMonitor;
-import algorithms.hybrid.ApiExplanationManager;
 import algorithms.hybrid.HybridSolver;
 import common.Configuration;
 import file_logger.FileLogger;
@@ -63,7 +62,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
         setMultiAxiomObservation(observation);
     }
 
-    public void setExplanations(Collection<Explanation> explanations){
+    void setExplanations(Collection<Explanation> explanations){
         this.explanations = explanations.stream()
                                         .map(Explanation::createExplanationWrapper)
                                         .collect(Collectors.toSet());
