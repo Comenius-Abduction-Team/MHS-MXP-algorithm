@@ -25,7 +25,7 @@ public class ConsoleExplanationManager extends ExplanationManager {
         } catch (OWLOntologyCreationException | OWLOntologyStorageException e) {
             e.printStackTrace();
         }
-        showMessages(solver.getInfo(), message);
+        logMessages(solver.getInfo(), message);
 
         if (message != null){
             printer.print('\n' + message);
