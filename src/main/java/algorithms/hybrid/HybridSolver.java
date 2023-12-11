@@ -116,7 +116,6 @@ public class HybridSolver implements ISolver {
             trySolve();
         }
 
-        explanationManager.processExplanations(message);
         progressManager.updateProgress(100, "Abduction finished.");
     }
 
@@ -609,6 +608,7 @@ public class HybridSolver implements ISolver {
         explanationManager.setLengthOneExplanations(new ArrayList<>());
         for (Explanation conflict : newExplanations){
             if (conflict.getOwlAxioms().size() == 1){
+                //explanationManager.addLengthOneExplanation(conflict.getOwlAxioms().stream().findFirst().orElse(null));
                 explanationManager.addLengthOneExplanation(Iterables.get(conflict.getOwlAxioms(), 0));
             }
             conflict.addAxioms(path);

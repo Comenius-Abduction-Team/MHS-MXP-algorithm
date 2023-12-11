@@ -128,7 +128,7 @@ public abstract class ExplanationManager implements IExplanationManager {
     }
 
     @Override
-    public void showMessages(List<String> info, String message) {
+    public void logMessages(List<String> info, String message) {
         StringBuilder result = new StringBuilder();
         result.append(String.join("\n", info));
 

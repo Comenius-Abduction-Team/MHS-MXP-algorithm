@@ -7,7 +7,6 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public interface IExplanationManager {
 
@@ -35,8 +34,7 @@ public interface IExplanationManager {
 
     void showError(Throwable e);
 
-    void showMessages(List<String> info, String message);
-
+    void logMessages(List<String> info, String message);
 
     void showExplanationsWithDepth(Integer depth, boolean timeout, boolean error, Double time);
 
