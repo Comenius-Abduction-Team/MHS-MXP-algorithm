@@ -12,12 +12,12 @@ import reasoner.IReasonerManager;
 
 import java.util.List;
 
-public class CheckRules implements ICheckRules {
+public class RuleChecker implements IRuleChecker {
 
-    private ILoader loader;
-    private IReasonerManager reasonerManager;
+    private final ILoader loader;
+    private final IReasonerManager reasonerManager;
 
-    CheckRules(ILoader loader, IReasonerManager reasonerManager) {
+    RuleChecker(ILoader loader, IReasonerManager reasonerManager) {
         this.loader = loader;
         this.reasonerManager = reasonerManager;
     }

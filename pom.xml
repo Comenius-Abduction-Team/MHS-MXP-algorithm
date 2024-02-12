@@ -6,7 +6,7 @@
 
     <groupId>sk.uniba.fmph.dai</groupId>
     <artifactId>mhs_mxp</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.9</version>
 
 <!--    <packaging>jar</packaging>-->
 
@@ -22,7 +22,6 @@
             <groupId>com.github.boborova3</groupId>
             <artifactId>jfact</artifactId>
             <version>428024c</version>
-<!--            fdb6448-->
         </dependency>
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
@@ -79,6 +78,18 @@
             <groupId>com.github.Comenius-Abduction-Team</groupId>
             <artifactId>DL-Abduction-API</artifactId>
             <version>5c2779a79f</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.8.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>RELEASE</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

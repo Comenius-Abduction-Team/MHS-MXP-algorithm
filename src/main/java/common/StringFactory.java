@@ -12,17 +12,17 @@ public class StringFactory {
 
     public static String getRepresentation(OWLAxiom owlAxiom) {
         if (owlAxiom instanceof OWLClassAssertionAxiom) {
-            return StringFactory.getClassAssertionAxiom(owlAxiom).concat(DLSyntax.LEFT_PARENTHESES).
-                    concat(StringFactory.getNamedIndividual(owlAxiom)).concat(DLSyntax.RIGHT_PARENTHESES);
-//            return Printer.getNamedIndividual(owlAxiom).concat(DLSyntax.DELIMITER_ASSERTION).concat(Printer.getClassAssertionAxiom(owlAxiom));
+            return getClassAssertionAxiom(owlAxiom).concat(DLSyntax.LEFT_PARENTHESES).
+                    concat(getNamedIndividual(owlAxiom)).concat(DLSyntax.RIGHT_PARENTHESES);
+//            return getNamedIndividual(owlAxiom).concat(DLSyntax.DELIMITER_ASSERTION).concat(getClassAssertionAxiom(owlAxiom));
         }
-        return StringFactory.getObjectPropertyAssertionAxiom(owlAxiom);
+        return getObjectPropertyAssertionAxiom(owlAxiom);
     }
 
     public static String getRepresentation(List<OWLAxiom> axioms){
         List<String> result = new ArrayList<>();
         for (OWLAxiom owlAxiom : axioms) {
-            result.add(StringFactory.getRepresentation(owlAxiom));
+            result.add(getRepresentation(owlAxiom));
         }
         return "{" + StringUtils.join(result, ",") + "}";
     }
@@ -91,5 +91,9 @@ public class StringFactory {
         }
 
         return property.concat(DLSyntax.LEFT_PARENTHESES).concat(subject).concat(DLSyntax.DELIMITER_OBJECT_PROPERTY).concat(object).concat(DLSyntax.RIGHT_PARENTHESES);
+    }
+
+    public static String extractClassName(OWLAxiom axiom) {
+        return getRepresentation(axiom).split("\\" + DLSyntax.LEFT_PARENTHESES)[0];
     }
 }

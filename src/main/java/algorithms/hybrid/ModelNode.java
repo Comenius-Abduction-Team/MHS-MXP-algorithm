@@ -10,7 +10,7 @@ public class ModelNode extends TreeNode {
 
     public Set<OWLAxiom> data;
     public boolean modelIsValid = true;
-    Set<OWLAxiom> lenght_one_explanations = new HashSet<>();
+    Set<OWLAxiom> lenghtOneExplanations = new HashSet<>();
 
     @Override
     public boolean equals(Object obj) {
@@ -21,15 +21,15 @@ public class ModelNode extends TreeNode {
         return false;
     }
 
-    public void add_to_explanations(List<OWLAxiom> explanations){
-        lenght_one_explanations.addAll(explanations);
+    public void addLengthOneExplanations(List<OWLAxiom> explanations){
+        lenghtOneExplanations.addAll(explanations);
     }
 
-    public void add_node_explanations(ModelNode node){
-        lenght_one_explanations.addAll(node.lenght_one_explanations);
+    public void addLengthOneExplanationsFromNode(ModelNode node){
+        lenghtOneExplanations.addAll(node.lenghtOneExplanations);
     }
 
-    public Set<OWLAxiom> get_explanations(){
-        return lenght_one_explanations;
+    public Set<OWLAxiom> getLengthOneExplanations(){
+        return lenghtOneExplanations;
     }
 }

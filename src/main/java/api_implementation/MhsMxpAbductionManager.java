@@ -213,7 +213,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
 
         setSolverConfiguration();
 
-        solver = new HybridSolver(timer, currentTimeMillis, explanationManager, progressManager, printer);
+        solver = new HybridSolver(timer, explanationManager, progressManager, printer);
 
     }
 

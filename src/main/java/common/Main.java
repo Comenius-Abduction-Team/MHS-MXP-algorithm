@@ -1,3 +1,5 @@
+package common;
+
 import abduction_api.abducible.SymbolAbducibleContainer;
 import abduction_api.manager.ExplanationWrapper;
 import abduction_api.manager.MultiObservationManager;
@@ -10,13 +12,11 @@ import algorithms.hybrid.HybridSolver;
 import api_implementation.MhsMxpAbductionFactory;
 import application.Application;
 import application.ExitCode;
-import common.ConsolePrinter;
 import file_logger.FileLogger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import parser.ArgumentParser;
-import common.Configuration;
 import progress.ConsoleProgressManager;
 import reasoner.*;
 import timer.ThreadTimes;
@@ -29,9 +29,9 @@ import java.util.logging.Logger;
 public class Main {
 
     /** whether the solver is being run from an IDE*/
-    private static final boolean TESTING = false;
+    private static boolean TESTING = true;
     /** whether the solver is being run from an IDE through the API*/
-    private static final boolean API = false;
+    private static final boolean API = true;
 
     public static void main(String[] args) throws Exception {
 
@@ -43,7 +43,7 @@ public class Main {
                 return;
             }
             args = new String[1];
-            args[0] = "./in/complex_obs/pokus.in";
+            args[0] = "./in/testExtractingModels/pokus9_2.in";
         }
 
         Logger logger = Logger.getLogger(Main.class.getSimpleName());
@@ -60,7 +60,6 @@ public class Main {
             loader.initialize(Configuration.REASONER);
 
             IReasonerManager reasonerManager = new ReasonerManager(loader);
-
 
             ISolver solver = createSolver(threadTimes, loader, reasonerManager, logger);
             solver.solve(loader, reasonerManager);
@@ -137,11 +136,12 @@ public class Main {
             }
 
         }
-        System.out.println(tam.getExplanations());
+        System.out.println("EXPLANATIONS FOUND: " + tam.getExplanations());
 
         System.out.println("-----------------------------------------");
-        System.out.println(tam.getOutputMessage());
+        System.out.println("OUTPUT MESSAGE: " + tam.getOutputMessage());
         System.out.println("-----------------------------------------");
+        System.out.println("FULL LOG:");
         System.out.println(tam.getFullLog());
     }
 
@@ -150,9 +150,6 @@ public class Main {
         ConsoleExplanationManager explanationManager = new ConsoleExplanationManager(loader, reasonerManager);
         ConsoleProgressManager progressManager = new ConsoleProgressManager();
 
-        long currentTimeMillis = System.currentTimeMillis();
-
-        return new HybridSolver(threadTimes, currentTimeMillis, explanationManager, progressManager,
-                new ConsolePrinter(logger));
+        return new HybridSolver(threadTimes, explanationManager, progressManager, new ConsolePrinter(logger));
     }
 }
