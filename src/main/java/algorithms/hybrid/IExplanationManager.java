@@ -36,8 +36,8 @@ public interface IExplanationManager {
 
     void logMessages(List<String> info, String message);
 
-    void showExplanationsWithDepth(Integer depth, boolean timeout, boolean error, Double time);
+    void logExplanationsWithDepth(Integer depth, boolean timeout, boolean error, Double time);
 
-    void showExplanationsWithLevel(Integer level, boolean timeout, boolean error, Double time);
+    void logExplanationsWithLevel(Integer level, boolean timeout, boolean error, Double time);
 
 }

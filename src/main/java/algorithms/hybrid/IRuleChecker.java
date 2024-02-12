@@ -5,7 +5,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
 import java.util.List;
 
-public interface ICheckRules {
+public interface IRuleChecker {
 
     boolean isConsistent(Explanation explanation);
 

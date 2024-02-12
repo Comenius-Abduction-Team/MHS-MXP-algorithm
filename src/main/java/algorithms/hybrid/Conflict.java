@@ -1,7 +1,7 @@
 package algorithms.hybrid;
 
 import models.Explanation;
-import models.Literals;
+import models.Axioms;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -9,32 +9,32 @@ import java.util.List;
 
 class Conflict {
 
-    private Literals literals;
+    private Axioms axioms;
     private List<Explanation> explanations;
 
     Conflict() {
-        this.literals = new Literals();
+        this.axioms = new Axioms();
         this.explanations = new LinkedList<>();
     }
 
-    Conflict(Literals literals, List<Explanation> explanations) {
-        this.literals = literals;
+    Conflict(Axioms axioms, List<Explanation> explanations) {
+        this.axioms = axioms;
         this.explanations = explanations;
     }
 
     Conflict(Conflict conflict) {
-        this.literals = new Literals();
-        this.literals.getOwlAxioms().addAll(conflict.getLiterals().getOwlAxioms());
+        this.axioms = new Axioms();
+        this.axioms.getAxiomSet().addAll(conflict.getAxioms().getAxiomSet());
 
         this.explanations = new LinkedList<>();
         this.explanations.addAll(conflict.getExplanations());
     }
 
-    Literals getLiterals() {
-        if (literals == null) {
-            literals = new Literals(new HashSet<>());
+    Axioms getAxioms() {
+        if (axioms == null) {
+            axioms = new Axioms(new HashSet<>());
         }
-        return literals;
+        return axioms;
     }
 
     List<Explanation> getExplanations() {

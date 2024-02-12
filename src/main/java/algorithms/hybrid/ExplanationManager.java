@@ -29,13 +29,13 @@ public abstract class ExplanationManager implements IExplanationManager {
     protected HybridSolver solver;
     private final ILoader loader;
     private final IReasonerManager reasonerManager;
-    private final ICheckRules checkRules;
+    private final IRuleChecker checkRules;
     protected IPrinter printer;
 
     public ExplanationManager(ILoader loader, IReasonerManager reasonerManager){
         this.loader = loader;
         this.reasonerManager = reasonerManager;
-        this.checkRules = new CheckRules(loader, reasonerManager);
+        this.checkRules = new RuleChecker(loader, reasonerManager);
     }
 
     @Override
@@ -92,9 +92,10 @@ public abstract class ExplanationManager implements IExplanationManager {
         finalExplanations = new LinkedList<>();
 
         StringBuilder result = showExplanationsAccordingToLength(filteredExplanations);
+        printer.print(result.toString());
         FileLogger.appendToFile(FileLogger.HYBRID_LOG_FILE__PREFIX, solver.currentTimeMillis, result.toString());
 
-        log_explanations_times(finalExplanations);
+        logExplanationsTimes(finalExplanations);
 
         if(!Configuration.MHS_MODE){
             StringBuilder resultLevel = showExplanationsAccordingToLevel(new ArrayList<>(finalExplanations));
@@ -155,13 +156,12 @@ public abstract class ExplanationManager implements IExplanationManager {
                 depth++;
                 continue;
             }
-            if (!solver.level_times.containsKey(depth)){
-                solver.level_times.put(depth, find_level_time(currentExplanations));
+            if (!solver.levelTimes.containsKey(depth)){
+                solver.levelTimes.put(depth, findLevelTime(currentExplanations));
             }
             finalExplanations.addAll(currentExplanations);
             String currentExplanationsFormat = StringUtils.join(currentExplanations, ",");
-            String line = String.format("%d;%d;%.2f;{%s}", depth, currentExplanations.size(), solver.level_times.get(depth), currentExplanationsFormat);
-            printer.print(line);
+            String line = String.format("%d;%d;%.2f;{%s}", depth, currentExplanations.size(), solver.levelTimes.get(depth), currentExplanationsFormat);
             result.append(line);
             depth++;
         }
@@ -178,11 +178,11 @@ public abstract class ExplanationManager implements IExplanationManager {
         int level = 0;
         while (filteredExplanations.size() > 0) {
             List<Explanation> currentExplanations = removeExplanationsWithLevel(filteredExplanations, level);
-            if (!solver.level_times.containsKey(level)){
-                solver.level_times.put(level, find_level_time(currentExplanations));
+            if (!solver.levelTimes.containsKey(level)){
+                solver.levelTimes.put(level, findLevelTime(currentExplanations));
             }
             String currentExplanationsFormat = StringUtils.join(currentExplanations, ",");
-            String line = String.format("%d;%d;%.2f;{%s}", level, currentExplanations.size(), solver.level_times.get(level), currentExplanationsFormat);
+            String line = String.format("%d;%d;%.2f;{%s}", level, currentExplanations.size(), solver.levelTimes.get(level), currentExplanationsFormat);
             result.append(line);
             level++;
         }
@@ -225,7 +225,7 @@ public abstract class ExplanationManager implements IExplanationManager {
         return currentExplanations;
     }
 
-    private double find_level_time(List<Explanation> explanations){
+    private double findLevelTime(List<Explanation> explanations){
         double time = 0;
         for (Explanation exp: explanations){
             if (exp.getAcquireTime() > time){
@@ -235,7 +235,7 @@ public abstract class ExplanationManager implements IExplanationManager {
         return time;
     }
 
-    private void log_explanations_times(List<Explanation> explanations){
+    private void logExplanationsTimes(List<Explanation> explanations){
         StringBuilder result = new StringBuilder();
         for (Explanation exp: explanations){
             String line = String.format("%.2f;%s\n", exp.getAcquireTime(), exp);
@@ -255,7 +255,7 @@ public abstract class ExplanationManager implements IExplanationManager {
         }
 
         for (OWLAxiom axiom1 : explanation.getOwlAxioms()) {
-            String name1 = getClassName(axiom1);
+            String name1 = StringFactory.extractClassName(axiom1);
             boolean negated1 = containsNegation(name1);
             if (negated1) {
                 name1 = name1.substring(1);
@@ -263,7 +263,7 @@ public abstract class ExplanationManager implements IExplanationManager {
 
             for (OWLAxiom axiom2 : explanation.getOwlAxioms()) {
                 if (!axiom1.equals(axiom2) && axiom1.getIndividualsInSignature().equals(axiom2.getIndividualsInSignature())) {
-                    String name2 = getClassName(axiom2);
+                    String name2 = StringFactory.extractClassName(axiom2);
 
                     boolean negated2 = containsNegation(name2);
                     if (negated2) {
@@ -280,16 +280,12 @@ public abstract class ExplanationManager implements IExplanationManager {
         return true;
     }
 
-    private String getClassName(OWLAxiom axiom) {
-        return StringFactory.getRepresentation(axiom).split("\\" + DLSyntax.LEFT_PARENTHESES)[0];
-    }
-
     private boolean containsNegation(String name) {
         return name.contains(DLSyntax.DISPLAY_NEGATION);
     }
 
     @Override
-    public void showExplanationsWithDepth(Integer depth, boolean timeout, boolean error, Double time) {
+    public void logExplanationsWithDepth(Integer depth, boolean timeout, boolean error, Double time) {
         List<Explanation> currentExplanations = possibleExplanations.stream().filter(explanation -> explanation.getDepth().equals(depth)).collect(Collectors.toList());
         String currentExplanationsFormat = StringUtils.join(currentExplanations, ",");
         String line = String.format("%d;%d;%.2f%s%s;{%s}\n", depth, currentExplanations.size(), time, timeout ? "-TIMEOUT" : "", error ? "-ERROR" : "", currentExplanationsFormat);
@@ -297,7 +293,7 @@ public abstract class ExplanationManager implements IExplanationManager {
     }
 
     @Override
-    public void showExplanationsWithLevel(Integer level, boolean timeout, boolean error, Double time){
+    public void logExplanationsWithLevel(Integer level, boolean timeout, boolean error, Double time){
         List<Explanation> currentExplanations = possibleExplanations.stream().filter(explanation -> explanation.getLevel().equals(level)).collect(Collectors.toList());
         String currentExplanationsFormat = StringUtils.join(currentExplanations, ",");
         String line = String.format("%d;%d;%.2f%s%s;{%s}\n", level, currentExplanations.size(), time, timeout ? "-TIMEOUT" : "", error ? "-ERROR" : "", currentExplanationsFormat);
