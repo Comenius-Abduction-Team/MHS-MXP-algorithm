@@ -23,6 +23,7 @@ public class Configuration {
     public static boolean MHS_MODE = false;
     public static boolean ROLES_IN_EXPLANATIONS_ALLOWED = false; // unstable for now
     public static boolean STRICT_RELEVANCE = true;
+    public static boolean PRINT_PROGRESS = false;
 
     //constants set before run program
     public static boolean REUSE_OF_MODELS = true;
