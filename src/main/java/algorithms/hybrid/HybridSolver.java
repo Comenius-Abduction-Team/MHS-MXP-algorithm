@@ -116,7 +116,8 @@ public class HybridSolver implements ISolver {
             trySolve();
         }
         //trySolve();
-        progressManager.updateProgress(100, "Abduction finished.");
+        if (Configuration.PRINT_PROGRESS)
+            progressManager.updateProgress(100, "Abduction finished.");
     }
 
     private void trySolve() throws OWLOntologyStorageException, OWLOntologyCreationException {
@@ -216,7 +217,8 @@ public class HybridSolver implements ISolver {
     }
 
     private void startSolving() throws OWLOntologyCreationException {
-        progressManager.updateProgress(0, "Abduction initialized.");
+        if (Configuration.PRINT_PROGRESS)
+            progressManager.updateProgress(0, "Abduction initialized.");
         currentDepth = 0;
 
         Queue<TreeNode> queue = new LinkedList<>();
@@ -399,7 +401,8 @@ public class HybridSolver implements ISolver {
     private boolean increaseDepth(TreeNode node){
         if (node.depth > currentDepth){
             makePartialLog();
-            progressManager.updateProgress(currentDepth, threadTimes.getTotalUserTimeInSec());
+            if (Configuration.PRINT_PROGRESS)
+                progressManager.updateProgress(currentDepth, threadTimes.getTotalUserTimeInSec());
             return true;
         }
         return false;
@@ -536,7 +539,8 @@ public class HybridSolver implements ISolver {
         while (!isOntologyWithLiteralsConsistent(conflictLiterals.getAxiomSet())) {
 
             if ((Configuration.DEPTH == null || Configuration.DEPTH == 0 || Configuration.DEPTH == Integer.MAX_VALUE) && Configuration.TIMEOUT != null)
-                progressManager.updateProgress(currentDepth, threadTimes.getTotalUserTimeInSec());
+                if (Configuration.PRINT_PROGRESS)
+                    progressManager.updateProgress(currentDepth, threadTimes.getTotalUserTimeInSec());
 
             if (isTimeout()) break;
 
