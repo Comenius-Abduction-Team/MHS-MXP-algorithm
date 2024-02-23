@@ -8,17 +8,19 @@ import java.util.Set;
 
 public interface IAxioms {
 
-    Set<OWLAxiom> getAxiomSet();
+    Collection<OWLAxiom> getAxioms();
 
-    List<OWLAxiom> getAxiomList();
+    Set<OWLAxiom> copyAsSet();
 
-    void addAxioms(Collection<OWLAxiom> axioms);
+    List<OWLAxiom> copyAsList();
 
-    void addAxiom(OWLAxiom axiom);
+    void addAll(Collection<OWLAxiom> axioms);
 
-    void removeAxiom(OWLAxiom axiom);
+    void add(OWLAxiom axiom);
 
-    void removeAxioms(Collection<OWLAxiom> axioms);
+    void remove(OWLAxiom axiom);
+
+    void removeAll(Collection<OWLAxiom> axioms);
 
     boolean contains(OWLAxiom axiom);
 

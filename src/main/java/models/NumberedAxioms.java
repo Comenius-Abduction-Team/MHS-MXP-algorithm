@@ -3,52 +3,110 @@ package models;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class NumberedAxioms implements IAxioms{
 
-    private int max = 0;
-    private List<NumberedAxiom> axioms;
+    Map<OWLAxiom, Integer> axioms = new HashMap<>();
 
-    public NumberedAxioms(Collection<OWLAxiom> axioms){
-        this.axioms = new ArrayList<>();
-        addAxioms(axioms);
+    @Override
+    public Collection<OWLAxiom> getAxioms() {
+        return axioms.keySet();
     }
 
     @Override
-    public Set<OWLAxiom> getAxiomSet() {
-        return axioms.stream().map(NumberedAxiom::getAxiom).collect(Collectors.toSet());
+    public Set<OWLAxiom> copyAsSet() {
+        return new HashSet<>(axioms.keySet());
     }
 
     @Override
-    public List<OWLAxiom> getAxiomList() {
-        return axioms.stream().map(NumberedAxiom::getAxiom).collect(Collectors.toList());
+    public List<OWLAxiom> copyAsList() {
+        return new ArrayList<>(axioms.keySet());
     }
 
     @Override
-    public void addAxioms(Collection<OWLAxiom> axioms) {
-        axioms.forEach(this::addAxiom);
+    public void add(OWLAxiom axiom) {
+        if (!axioms.containsKey(axiom))
+            axioms.put(axiom,null);
     }
 
     @Override
-    public void addAxiom(OWLAxiom axiom) {
-        max += 1;
-        axioms.add(new NumberedAxiom(max,axiom));
+    public void addAll(Collection<OWLAxiom> axioms) {
+        axioms.forEach(this::add);
+    }
+
+//    @Override
+//    public void addAll(IAxioms axioms) {
+//        axioms.toSet().forEach(this::add);
+//    }
+
+    public void addWithIndex(OWLAxiom axiom, Integer index) {
+        if (!axioms.containsKey(axiom))
+            axioms.put(axiom,index);
+    }
+
+//    @Override
+//    public void set(Collection<OWLAxiom> axioms) {
+//        this.axioms = new HashMap<>();
+//        addAll(axioms);
+//    }
+
+    @Override
+    public void remove(OWLAxiom axiom) {
+        axioms.remove(axiom);
     }
 
     @Override
-    public void removeAxiom(OWLAxiom axiom) {
-        removeAxioms(Collections.singletonList(axiom));
+    public void removeAll(Collection<OWLAxiom> axioms) {
+        this.axioms.keySet().removeAll(axioms);
     }
 
-    @Override
-    public void removeAxioms(Collection<OWLAxiom> axioms) {
-        this.axioms = this.axioms.stream().filter(axiom -> axioms.contains(axiom.getAxiom()))
-                                          .collect(Collectors.toList());
-    }
+//    @Override
+//    public void removeAll(IAxioms axioms) {
+//        this.axioms.keySet().removeAll(axioms.toSet());
+//    }
 
     @Override
     public boolean contains(OWLAxiom axiom) {
-        return axioms.stream().anyMatch(numbered -> numbered.getAxiom().equals(axiom));
+        return axioms.containsKey(axiom);
+    }
+
+//    @Override
+//    public boolean containsAll(Collection<OWLAxiom> axioms) {
+//        return this.axioms.keySet().containsAll(axioms);
+//    }
+
+//    @Override
+//    public boolean containsAll(IAxioms axioms) {
+//        return this.axioms.keySet().containsAll(axioms.toSet());
+//    }
+
+//    @Override
+//    public int size() {
+//        return axioms.size();
+//    }
+//
+//    @Override
+//    public boolean isEmpty() {
+//        return axioms.isEmpty();
+//    }
+
+//    @Override
+//    public IAxioms copy() {
+//        NumberedAxioms copy = new NumberedAxioms();
+//        axioms.forEach(copy::addAxiom);
+//        return copy;
+//    }
+
+//    @Override
+//    public Stream<OWLAxiom> stream() {
+//        return axioms.keySet().stream();
+//    }
+
+    public Integer getIndex(OWLAxiom axiom){
+        return axioms.get(axiom);
+    }
+
+    public void setIndex(OWLAxiom axiom, Integer index){
+        axioms.put(axiom,index);
     }
 }
