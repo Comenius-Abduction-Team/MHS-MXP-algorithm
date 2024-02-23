@@ -2,6 +2,7 @@ package algorithms.hybrid;
 
 import models.Explanation;
 import models.Axioms;
+import models.IAxioms;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -9,7 +10,7 @@ import java.util.List;
 
 class Conflict {
 
-    private Axioms axioms;
+    private IAxioms axioms;
     private List<Explanation> explanations;
 
     Conflict() {
@@ -17,20 +18,20 @@ class Conflict {
         this.explanations = new LinkedList<>();
     }
 
-    Conflict(Axioms axioms, List<Explanation> explanations) {
+    Conflict(IAxioms axioms, List<Explanation> explanations) {
         this.axioms = axioms;
         this.explanations = explanations;
     }
 
     Conflict(Conflict conflict) {
         this.axioms = new Axioms();
-        this.axioms.getAxiomSet().addAll(conflict.getAxioms().getAxiomSet());
+        this.axioms.getAxioms().addAll(conflict.getAxioms().getAxioms());
 
         this.explanations = new LinkedList<>();
         this.explanations.addAll(conflict.getExplanations());
     }
 
-    Axioms getAxioms() {
+    IAxioms getAxioms() {
         if (axioms == null) {
             axioms = new Axioms(new HashSet<>());
         }

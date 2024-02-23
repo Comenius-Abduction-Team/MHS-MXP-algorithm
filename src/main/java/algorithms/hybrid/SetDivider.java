@@ -4,6 +4,7 @@ import common.Configuration;
 import models.AxiomPair;
 import models.Explanation;
 import models.Axioms;
+import models.IAxioms;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import java.util.*;
@@ -52,7 +53,7 @@ public class SetDivider {
         }
     }
 
-    public List<Axioms> divideIntoSets(Axioms literals) {
+    public List<Axioms> divideIntoSets(IAxioms literals) {
         if(Configuration.CACHED_CONFLICTS_LONGEST_CONFLICT && explanationManager.getPossibleExplanationsCount() > 0 && lastUsedIndex != -1){
             return divideIntoSetsAccordingTheLongestConflict(literals);
         } else if (Configuration.CACHED_CONFLICTS_MEDIAN && explanationManager.getPossibleExplanationsCount() > 0){
@@ -61,7 +62,7 @@ public class SetDivider {
         return divideIntoSetsWithoutCondition(literals);
     }
 
-    public List<Axioms> divideIntoSetsWithoutCondition(Axioms literals){
+    public List<Axioms> divideIntoSetsWithoutCondition(IAxioms literals){
         List<Axioms> dividedLiterals = new ArrayList<>();
 
         dividedLiterals.add(new Axioms());
@@ -69,14 +70,14 @@ public class SetDivider {
 
         int count = 0;
 
-        for (OWLAxiom owlAxiom : literals.getAxiomSet()) {
-            dividedLiterals.get(count % 2).getAxiomSet().add(owlAxiom);
+        for (OWLAxiom owlAxiom : literals.getAxioms()) {
+            dividedLiterals.get(count % 2).getAxioms().add(owlAxiom);
             count++;
         }
         return dividedLiterals;
     }
 
-    private List<Axioms> divideIntoSetsAccordingTheLongestConflict(Axioms literals){
+    private List<Axioms> divideIntoSetsAccordingTheLongestConflict(IAxioms literals){
         Explanation theLongestExplanation = explanationManager.getPossibleExplanations().get(lastUsedIndex);
         Set<OWLAxiom> axiomsFromExplanation = new HashSet<>(theLongestExplanation.getOwlAxioms());
 
@@ -86,15 +87,15 @@ public class SetDivider {
 
         int count = 0;
         for(OWLAxiom owlAxiom : axiomsFromExplanation){
-            if(literals.getAxiomSet().contains(owlAxiom)){
-                dividedLiterals.get(count % 2).getAxiomSet().add(owlAxiom);
+            if(literals.getAxioms().contains(owlAxiom)){
+                dividedLiterals.get(count % 2).getAxioms().add(owlAxiom);
                 count++;
             }
         }
 
-        for(OWLAxiom owlAxiom : literals.getAxiomSet()) {
+        for(OWLAxiom owlAxiom : literals.getAxioms()) {
             if(!axiomsFromExplanation.contains(owlAxiom)){
-                dividedLiterals.get(count % 2).getAxiomSet().add(owlAxiom);
+                dividedLiterals.get(count % 2).getAxioms().add(owlAxiom);
                 count++;
             }
         }
@@ -119,8 +120,8 @@ public class SetDivider {
         return indexOfLongestExp;
     }
 
-    private List<Axioms> divideIntoSetsAccordingTableOfLiteralsPairOccurrence(Axioms literals){
-        Set<OWLAxiom> axiomsFromLiterals = new HashSet<>(literals.getAxiomSet());
+    private List<Axioms> divideIntoSetsAccordingTableOfLiteralsPairOccurrence(IAxioms literals){
+        Set<OWLAxiom> axiomsFromLiterals = new HashSet<>(literals.getAxioms());
         List<Axioms> dividedLiterals = new ArrayList<>();
         dividedLiterals.add(new Axioms());
         dividedLiterals.add(new Axioms());
@@ -128,8 +129,8 @@ public class SetDivider {
         for(AxiomPair key : tableOfAxiomPairOccurance.keySet()){
             if(axiomsFromLiterals.contains(key.first) && axiomsFromLiterals.contains(key.second)){
                 if(tableOfAxiomPairOccurance.get(key) >= median){
-                    dividedLiterals.get(0).getAxiomSet().add(key.first);
-                    dividedLiterals.get(1).getAxiomSet().add(key.second);
+                    dividedLiterals.get(0).getAxioms().add(key.first);
+                    dividedLiterals.get(1).getAxioms().add(key.second);
                     axiomsFromLiterals.remove(key.first);
                     axiomsFromLiterals.remove(key.second);
                 }
@@ -138,7 +139,7 @@ public class SetDivider {
 
         int count = 0;
         for (OWLAxiom owlAxiom : axiomsFromLiterals) {
-            dividedLiterals.get(count % 2).getAxiomSet().add(owlAxiom);
+            dividedLiterals.get(count % 2).getAxioms().add(owlAxiom);
             count++;
         }
 

@@ -5,7 +5,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 
 import java.util.*;
 
-public class Axioms {
+public class Axioms implements IAxioms {
 
     private final Set<OWLAxiom> owlAxioms = new HashSet<>();
 
@@ -15,28 +15,40 @@ public class Axioms {
         this.owlAxioms.addAll(owlAxioms);
     }
 
-    public Set<OWLAxiom> getAxiomSet() {
+    @Override
+    public Collection<OWLAxiom> getAxioms() {
         return owlAxioms;
     }
 
-    public List<OWLAxiom> getAxiomList() {
+    @Override
+    public Set<OWLAxiom> copyAsSet() {
+        return new HashSet<>(owlAxioms);
+    }
+
+    @Override
+    public List<OWLAxiom> copyAsList() {
         return new ArrayList<>(owlAxioms);
     }
 
-    public void addAxioms(Collection<OWLAxiom> literals){
+    @Override
+    public void addAll(Collection<OWLAxiom> literals){
         owlAxioms.addAll(literals);
     }
 
-    public void addAxiom(OWLAxiom axiom){
+    @Override
+    public void add(OWLAxiom axiom){
         owlAxioms.add(axiom);
     }
 
-    public void removeAxiom(OWLAxiom axiom) {owlAxioms.remove(axiom); }
+    @Override
+    public void remove(OWLAxiom axiom) {owlAxioms.remove(axiom); }
 
-    public void removeAxioms(Collection<OWLAxiom> axioms){
+    @Override
+    public void removeAll(Collection<OWLAxiom> axioms){
         owlAxioms.removeAll(axioms);
     }
 
+    @Override
     public boolean contains(OWLAxiom axiom) { return owlAxioms.contains(axiom); }
 
     @Override

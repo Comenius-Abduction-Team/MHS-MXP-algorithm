@@ -214,7 +214,8 @@ public class ModelExtractor {
 
     public void divideTypesAccordingOntology(Set<OWLClassExpression> ontologyTypes, Set<OWLClassExpression> knownTypes, Set<OWLClassExpression> knownNotTypes){
         for (OWLClassExpression exp : ontologyTypes) {
-            assert (exp.isClassExpressionLiteral());
+            //System.out.println(exp.getClassExpressionType());
+            //assert (exp.isClassExpressionLiteral());
             if (exp.isOWLClass()) {
                 knownTypes.add((exp));
             } else {

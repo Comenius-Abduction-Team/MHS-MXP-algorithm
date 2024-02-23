@@ -8,6 +8,7 @@ import common.IPrinter;
 import models.Abducibles;
 import models.Explanation;
 import models.Axioms;
+import models.IAxioms;
 import org.semanticweb.owlapi.model.*;
 
 import progress.IProgressManager;
@@ -27,7 +28,7 @@ public class HybridSolver implements ISolver {
 
     private ILoader loader;
     private IReasonerManager reasonerManager;
-    private Axioms abd_literals;
+    private IAxioms abd_literals;
     private ModelExtractor modelExtractor;
     private final IExplanationManager explanationManager;
     private final IProgressManager progressManager;
@@ -91,6 +92,11 @@ public class HybridSolver implements ISolver {
     }
 
     @Override
+    public Collection<Explanation> getExplanations() {
+        return explanationManager.getFinalExplanations();
+    }
+
+    @Override
     public void solve(ILoader loader, IReasonerManager reasonerManager) throws OWLOntologyStorageException, OWLOntologyCreationException {
         this.loader = loader;
         this.reasonerManager = reasonerManager;
@@ -112,11 +118,12 @@ public class HybridSolver implements ISolver {
         }
 
         else {
-            reasonerManager.isOntologyWithLiteralsConsistent(abd_literals.getAxiomSet(), ontology);
+            reasonerManager.isOntologyWithLiteralsConsistent(abd_literals.getAxioms(), ontology);
             trySolve();
         }
         //trySolve();
-        progressManager.updateProgress(100, "Abduction finished.");
+        if (Configuration.PRINT_PROGRESS)
+            progressManager.updateProgress(100, "Abduction finished.");
     }
 
     private void trySolve() throws OWLOntologyStorageException, OWLOntologyCreationException {
@@ -216,7 +223,8 @@ public class HybridSolver implements ISolver {
     }
 
     private void startSolving() throws OWLOntologyCreationException {
-        progressManager.updateProgress(0, "Abduction initialized.");
+        if (Configuration.PRINT_PROGRESS)
+            progressManager.updateProgress(0, "Abduction initialized.");
         currentDepth = 0;
 
         Queue<TreeNode> queue = new LinkedList<>();
@@ -399,7 +407,8 @@ public class HybridSolver implements ISolver {
     private boolean increaseDepth(TreeNode node){
         if (node.depth > currentDepth){
             makePartialLog();
-            progressManager.updateProgress(currentDepth, threadTimes.getTotalUserTimeInSec());
+            if (Configuration.PRINT_PROGRESS)
+                progressManager.updateProgress(currentDepth, threadTimes.getTotalUserTimeInSec());
             return true;
         }
         return false;
@@ -474,18 +483,18 @@ public class HybridSolver implements ISolver {
     }
 
     private List<Explanation> findExplanations(){
-        abd_literals.removeAxioms(path);
-        abd_literals.removeAxioms(explanationManager.getLengthOneExplanations());
+        abd_literals.removeAll(path);
+        abd_literals.removeAll(explanationManager.getLengthOneExplanations());
         if(Configuration.CACHED_CONFLICTS_LONGEST_CONFLICT){
             setDivider.setIndexesOfExplanations(explanationManager.getPossibleExplanationsCount());
         }
         Conflict conflict = findConflicts(abd_literals);
-        abd_literals.addAxioms(path);
-        abd_literals.addAxioms(explanationManager.getLengthOneExplanations());
+        abd_literals.addAll(path);
+        abd_literals.addAll(explanationManager.getLengthOneExplanations());
         return conflict.getExplanations();
     }
 
-    private Conflict findConflicts(Axioms literals) {
+    private Conflict findConflicts(IAxioms literals) {
         path.remove(negObservation);
         reasonerManager.addAxiomsToOntology(path);
 
@@ -493,13 +502,13 @@ public class HybridSolver implements ISolver {
             return new Conflict(new Axioms(), new LinkedList<>());
         }
 
-        if (isOntologyWithLiteralsConsistent(literals.getAxiomSet())) {
+        if (isOntologyWithLiteralsConsistent(literals.getAxioms())) {
             return new Conflict(literals, new LinkedList<>());
         }
         resetOntologyToOriginal();
-        if (literals.getAxiomSet().size() == 1) {
+        if (literals.getAxioms().size() == 1) {
             List<Explanation> explanations = new LinkedList<>();
-            explanations.add(new Explanation(literals.getAxiomSet(), literals.getAxiomSet().size(), currentDepth, threadTimes.getTotalUserTimeInSec()));
+            explanations.add(new Explanation(literals.getAxioms(), literals.getAxioms().size(), currentDepth, threadTimes.getTotalUserTimeInSec()));
             return new Conflict(new Axioms(), explanations);
         }
 
@@ -530,19 +539,20 @@ public class HybridSolver implements ISolver {
         explanations.addAll(conflictC2.getExplanations());
 
         Axioms conflictLiterals = new Axioms();
-        conflictLiterals.getAxiomSet().addAll(conflictC1.getAxioms().getAxiomSet());
-        conflictLiterals.getAxiomSet().addAll(conflictC2.getAxioms().getAxiomSet());
+        conflictLiterals.getAxioms().addAll(conflictC1.getAxioms().getAxioms());
+        conflictLiterals.getAxioms().addAll(conflictC2.getAxioms().getAxioms());
 
-        while (!isOntologyWithLiteralsConsistent(conflictLiterals.getAxiomSet())) {
+        while (!isOntologyWithLiteralsConsistent(conflictLiterals.getAxioms())) {
 
             if ((Configuration.DEPTH == null || Configuration.DEPTH == 0 || Configuration.DEPTH == Integer.MAX_VALUE) && Configuration.TIMEOUT != null)
-                progressManager.updateProgress(currentDepth, threadTimes.getTotalUserTimeInSec());
+                if (Configuration.PRINT_PROGRESS)
+                    progressManager.updateProgress(currentDepth, threadTimes.getTotalUserTimeInSec());
 
             if (isTimeout()) break;
 
-            path.addAll(conflictC2.getAxioms().getAxiomSet());
-            Explanation X = getConflict(conflictC2.getAxioms().getAxiomSet(), conflictC1.getAxioms(), path);
-            path.removeAll(conflictC2.getAxioms().getAxiomSet());
+            path.addAll(conflictC2.getAxioms().getAxioms());
+            Explanation X = getConflict(conflictC2.getAxioms().getAxioms(), conflictC1.getAxioms(), path);
+            path.removeAll(conflictC2.getAxioms().getAxioms());
 
             path.addAll(X.getOwlAxioms());
             Explanation CS = getConflict(X.getOwlAxioms(), conflictC2.getAxioms(), path);
@@ -550,9 +560,9 @@ public class HybridSolver implements ISolver {
 
             CS.getOwlAxioms().addAll(X.getOwlAxioms());
 
-            conflictLiterals.getAxiomSet().removeAll(conflictC1.getAxioms().getAxiomSet());
-            X.getOwlAxioms().stream().findFirst().ifPresent(axiom -> conflictC1.getAxioms().getAxiomSet().remove(axiom));
-            conflictLiterals.getAxiomSet().addAll(conflictC1.getAxioms().getAxiomSet());
+            conflictLiterals.getAxioms().removeAll(conflictC1.getAxioms().getAxioms());
+            X.getOwlAxioms().stream().findFirst().ifPresent(axiom -> conflictC1.getAxioms().getAxioms().remove(axiom));
+            conflictLiterals.getAxioms().addAll(conflictC1.getAxioms().getAxioms());
 
             if (explanations.contains(CS) || isTimeout()) {
                 break;
@@ -571,7 +581,7 @@ public class HybridSolver implements ISolver {
         return new Conflict(conflictLiterals, explanations);
     }
 
-    private Explanation getConflict(Collection<OWLAxiom> axioms, Axioms literals, Set<OWLAxiom> actualPath) {
+    private Explanation getConflict(Collection<OWLAxiom> axioms, IAxioms literals, Set<OWLAxiom> actualPath) {
 
         if (isTimeout()) {
             return new Explanation();
@@ -581,15 +591,15 @@ public class HybridSolver implements ISolver {
             return new Explanation();
         }
 
-        if (literals.getAxiomSet().size() == 1) {
-            return new Explanation(literals.getAxiomSet(), 1, currentDepth, threadTimes.getTotalUserTimeInSec());
+        if (literals.getAxioms().size() == 1) {
+            return new Explanation(literals.getAxioms(), 1, currentDepth, threadTimes.getTotalUserTimeInSec());
         }
 
         List<Axioms> sets = setDivider.divideIntoSetsWithoutCondition(literals);
 
-        actualPath.addAll(sets.get(0).getAxiomSet());
-        Explanation D2 = getConflict(sets.get(0).getAxiomSet(), sets.get(1), actualPath);
-        actualPath.removeAll(sets.get(0).getAxiomSet());
+        actualPath.addAll(sets.get(0).getAxioms());
+        Explanation D2 = getConflict(sets.get(0).getAxioms(), sets.get(1), actualPath);
+        actualPath.removeAll(sets.get(0).getAxioms());
 
         actualPath.addAll(D2.getOwlAxioms());
         Explanation D1 = getConflict(D2.getOwlAxioms(), sets.get(0), actualPath);
