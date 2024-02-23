@@ -28,9 +28,10 @@ public class ConsoleLoader extends Loader {
 
     @Override
     protected void setupOntology() throws OWLOntologyCreationException {
-        ontology = ontologyManager.loadOntologyFromOntologyDocument(new File(Configuration.INPUT_ONT_FILE));
-        originalOntology = OWLManager.createOWLOntologyManager().loadOntologyFromOntologyDocument(new File(Configuration.INPUT_ONT_FILE));
-        initialOntology = OWLManager.createOWLOntologyManager().loadOntologyFromOntologyDocument(new File(Configuration.INPUT_ONT_FILE));
+        File ontologyFile = new File(Configuration.INPUT_ONT_FILE);
+        ontology = ontologyManager.loadOntologyFromOntologyDocument(ontologyFile);
+        originalOntology = OWLManager.createOWLOntologyManager().loadOntologyFromOntologyDocument(ontologyFile);
+        initialOntology = OWLManager.createOWLOntologyManager().loadOntologyFromOntologyDocument(ontologyFile);
     }
 
     @Override
