@@ -13,6 +13,9 @@ import api_implementation.MhsMxpAbductionFactory;
 import application.Application;
 import application.ExitCode;
 import file_logger.FileLogger;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
@@ -24,14 +27,13 @@ import timer.ThreadTimes;
 import java.io.*;
 import java.util.Collections;
 import java.util.Set;
-import java.util.logging.Logger;
 
 public class Main {
 
     /** whether the solver is being run from an IDE*/
-    private static boolean TESTING = true;
+    private static boolean TESTING = false;
     /** whether the solver is being run from an IDE through the API*/
-    private static final boolean API = true;
+    private static final boolean API = false;
 
     public static void main(String[] args) throws Exception {
 
@@ -42,30 +44,19 @@ public class Main {
                 runApiTestingMain();
                 return;
             }
-            args = new String[1];
-            args[0] = "./in/testExtractingModels/pokus9_2.in";
+
+            args = new String[]{"./in/testExtractingModels/pokus9_1.in"};
         }
 
-        Logger logger = Logger.getLogger(Main.class.getSimpleName());
+        Logger logger = Logger.getRootLogger();
+        logger.setLevel(Level.OFF);
+        BasicConfigurator.configure();
+
         ThreadTimes threadTimes = new ThreadTimes(100);
 
         try{
-
-            ArgumentParser argumentParser = new ArgumentParser();
-            argumentParser.parse(args);
-
-            threadTimes.start();
-
-            ILoader loader = new ConsoleLoader();
-            loader.initialize(Configuration.REASONER);
-
-            IReasonerManager reasonerManager = new ReasonerManager(loader);
-
-            ISolver solver = createSolver(threadTimes, loader, reasonerManager, logger);
-            solver.solve(loader, reasonerManager);
-
-        } catch(RuntimeException e) {
-            new ConsolePrinter(logger).logError("An error occurred: ", e);
+            runSolving(args, threadTimes, logger);
+        } catch(Exception e) {
             Application.finish(ExitCode.ERROR);
         } finally {
             threadTimes.interrupt();
@@ -143,6 +134,33 @@ public class Main {
         System.out.println("-----------------------------------------");
         System.out.println("FULL LOG:");
         System.out.println(tam.getFullLog());
+    }
+
+    public static ISolver runSolving(String[] args, ThreadTimes threadTimes, Logger logger) throws Exception {
+
+        ISolver solver = null;
+
+        try{
+
+            ArgumentParser argumentParser = new ArgumentParser();
+            argumentParser.parse(args);
+
+            threadTimes.start();
+
+            ILoader loader = new ConsoleLoader();
+            loader.initialize(Configuration.REASONER);
+
+            IReasonerManager reasonerManager = new ReasonerManager(loader);
+
+            solver = createSolver(threadTimes, loader, reasonerManager, logger);
+            solver.solve(loader, reasonerManager);
+
+        } catch(Throwable e){
+            new ConsolePrinter(logger).logError("An error occurred: ", e);
+            throw e;
+        }
+
+        return solver;
     }
 
     private static ISolver createSolver(ThreadTimes threadTimes, ILoader loader, IReasonerManager reasonerManager, Logger logger) {

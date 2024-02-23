@@ -8,13 +8,13 @@ import org.semanticweb.owlapi.model.*;
 import parser.*;
 
 import java.io.File;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public class ConsoleLoader extends Loader {
 
     public ConsoleLoader(){
         super();
-        Logger logger = Logger.getLogger(Loader.class.getSimpleName());
+        Logger logger = Logger.getRootLogger();
         printer = new ConsolePrinter(logger);
     }
 

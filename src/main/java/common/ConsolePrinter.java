@@ -1,7 +1,7 @@
 package common;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 public class ConsolePrinter implements IPrinter {
 
@@ -19,9 +19,9 @@ public class ConsolePrinter implements IPrinter {
     @Override
     public void logError(String message, Throwable exception) {
         if (exception == null)
-            logger.log(Level.WARNING, message);
+            logger.log(Level.WARN, message);
         else
-            logger.log(Level.WARNING, message, exception);
+            logger.log(Level.WARN, message, exception);
     }
 
     @Override
