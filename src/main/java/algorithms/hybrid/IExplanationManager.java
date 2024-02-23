@@ -40,4 +40,6 @@ public interface IExplanationManager {
 
     void logExplanationsWithLevel(Integer level, boolean timeout, boolean error, Double time);
 
+    Collection<Explanation> getFinalExplanations();
+
 }

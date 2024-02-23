@@ -300,4 +300,7 @@ public abstract class ExplanationManager implements IExplanationManager {
         FileLogger.appendToFile(FileLogger.HYBRID_PARTIAL_EXPLANATIONS_ACCORDING_TO_LEVELS_LOG_FILE__PREFIX, solver.currentTimeMillis, line);
     }
 
+    public List<Explanation> getFinalExplanations() {
+        return finalExplanations;
+    }
 }
