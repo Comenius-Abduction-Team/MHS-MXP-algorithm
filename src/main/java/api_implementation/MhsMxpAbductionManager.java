@@ -91,10 +91,11 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     }
 
     private boolean checkObservationType(OWLAxiom axiom){
-        AxiomType<?> type = axiom.getAxiomType();
-        return  AxiomType.CLASS_ASSERTION == type ||
-                AxiomType.OBJECT_PROPERTY_ASSERTION == type ||
-                AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION == type;
+        return true;
+//        AxiomType<?> type = axiom.getAxiomType();
+//        return  AxiomType.CLASS_ASSERTION == type ||
+//                AxiomType.OBJECT_PROPERTY_ASSERTION == type ||
+//                AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION == type;
     }
 
     @Override
