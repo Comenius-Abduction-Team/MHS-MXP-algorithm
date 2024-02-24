@@ -1,5 +1,3 @@
-package common;
-
 import abduction_api.abducible.SymbolAbducibleContainer;
 import abduction_api.manager.ExplanationWrapper;
 import abduction_api.manager.MultiObservationManager;
@@ -12,6 +10,8 @@ import algorithms.hybrid.HybridSolver;
 import api_implementation.MhsMxpAbductionFactory;
 import application.Application;
 import application.ExitCode;
+import common.Configuration;
+import common.ConsolePrinter;
 import file_logger.FileLogger;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
@@ -31,7 +31,7 @@ public class Main {
     /** whether the solver is being run from an IDE*/
     private static boolean TESTING = true;
     /** whether the solver is being run from an IDE through the API*/
-    private static final boolean API = true;
+    private static final boolean API = false;
 
     public static void main(String[] args) throws Exception {
 
@@ -64,7 +64,7 @@ public class Main {
             ISolver solver = createSolver(threadTimes, loader, reasonerManager, logger);
             solver.solve(loader, reasonerManager);
 
-        } catch(RuntimeException e) {
+        } catch(Throwable e) {
             new ConsolePrinter(logger).logError("An error occurred: ", e);
             Application.finish(ExitCode.ERROR);
         } finally {
@@ -74,6 +74,9 @@ public class Main {
     }
 
     private static void runApiTestingMain() throws OWLOntologyCreationException {
+
+        Configuration.PRINT_PROGRESS = true;
+
         MhsMxpAbductionFactory factory = MhsMxpAbductionFactory.getFactory();
 
         OWLOntologyManager ontologyManager = OWLManager.createOWLOntologyManager();
