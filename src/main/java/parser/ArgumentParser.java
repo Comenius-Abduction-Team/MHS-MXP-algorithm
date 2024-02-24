@@ -16,6 +16,10 @@ public class ArgumentParser {
             String message = "Wrong number of argument for main function: Run program with one configuration input file as argument";
             throw new RuntimeException(message);
         }
+        if (!new File(args[0]).exists()){
+            String message = "Could not open input file: " + args[0];
+            throw new RuntimeException(message);
+        }
         Configuration.INPUT_FILE_NAME = new File(args[0]).getName().split("\\.")[0];
         ArrayList<String[]> lines = read_input_file(args[0]);
 
