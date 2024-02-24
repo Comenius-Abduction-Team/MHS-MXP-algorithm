@@ -17,7 +17,7 @@ public class Axioms implements IAxioms {
 
     @Override
     public Collection<OWLAxiom> getAxioms() {
-        return owlAxioms;
+        return Collections.unmodifiableSet(owlAxioms);
     }
 
     @Override
@@ -48,7 +48,6 @@ public class Axioms implements IAxioms {
         owlAxioms.removeAll(axioms);
     }
 
-    @Override
     public boolean contains(OWLAxiom axiom) { return owlAxioms.contains(axiom); }
 
     @Override

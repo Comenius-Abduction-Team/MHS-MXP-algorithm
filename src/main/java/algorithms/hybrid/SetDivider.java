@@ -71,7 +71,7 @@ public class SetDivider {
         int count = 0;
 
         for (OWLAxiom owlAxiom : literals.getAxioms()) {
-            dividedLiterals.get(count % 2).getAxioms().add(owlAxiom);
+            dividedLiterals.get(count % 2).add(owlAxiom);
             count++;
         }
         return dividedLiterals;
@@ -88,14 +88,14 @@ public class SetDivider {
         int count = 0;
         for(OWLAxiom owlAxiom : axiomsFromExplanation){
             if(literals.getAxioms().contains(owlAxiom)){
-                dividedLiterals.get(count % 2).getAxioms().add(owlAxiom);
+                dividedLiterals.get(count % 2).add(owlAxiom);
                 count++;
             }
         }
 
         for(OWLAxiom owlAxiom : literals.getAxioms()) {
             if(!axiomsFromExplanation.contains(owlAxiom)){
-                dividedLiterals.get(count % 2).getAxioms().add(owlAxiom);
+                dividedLiterals.get(count % 2).add(owlAxiom);
                 count++;
             }
         }
@@ -129,8 +129,8 @@ public class SetDivider {
         for(AxiomPair key : tableOfAxiomPairOccurance.keySet()){
             if(axiomsFromLiterals.contains(key.first) && axiomsFromLiterals.contains(key.second)){
                 if(tableOfAxiomPairOccurance.get(key) >= median){
-                    dividedLiterals.get(0).getAxioms().add(key.first);
-                    dividedLiterals.get(1).getAxioms().add(key.second);
+                    dividedLiterals.get(0).add(key.first);
+                    dividedLiterals.get(1).add(key.second);
                     axiomsFromLiterals.remove(key.first);
                     axiomsFromLiterals.remove(key.second);
                 }
@@ -139,7 +139,7 @@ public class SetDivider {
 
         int count = 0;
         for (OWLAxiom owlAxiom : axiomsFromLiterals) {
-            dividedLiterals.get(count % 2).getAxioms().add(owlAxiom);
+            dividedLiterals.get(count % 2).add(owlAxiom);
             count++;
         }
 

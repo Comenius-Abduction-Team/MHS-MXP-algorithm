@@ -25,7 +25,7 @@ class Conflict {
 
     Conflict(Conflict conflict) {
         this.axioms = new Axioms();
-        this.axioms.getAxioms().addAll(conflict.getAxioms().getAxioms());
+        this.axioms.addAll(conflict.getAxioms().getAxioms());
 
         this.explanations = new LinkedList<>();
         this.explanations.addAll(conflict.getExplanations());

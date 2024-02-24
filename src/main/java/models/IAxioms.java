@@ -22,6 +22,4 @@ public interface IAxioms {
 
     void removeAll(Collection<OWLAxiom> axioms);
 
-    boolean contains(OWLAxiom axiom);
-
 }

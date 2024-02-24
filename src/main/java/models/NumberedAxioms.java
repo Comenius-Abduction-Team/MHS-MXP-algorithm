@@ -6,6 +6,8 @@ import java.util.*;
 
 public class NumberedAxioms implements IAxioms{
 
+    public static final Integer DEFAULT_INDEX = -1;
+
     Map<OWLAxiom, Integer> axioms = new HashMap<>();
 
     @Override
@@ -26,7 +28,7 @@ public class NumberedAxioms implements IAxioms{
     @Override
     public void add(OWLAxiom axiom) {
         if (!axioms.containsKey(axiom))
-            axioms.put(axiom,null);
+            axioms.put(axiom, DEFAULT_INDEX);
     }
 
     @Override
@@ -65,7 +67,6 @@ public class NumberedAxioms implements IAxioms{
 //        this.axioms.keySet().removeAll(axioms.toSet());
 //    }
 
-    @Override
     public boolean contains(OWLAxiom axiom) {
         return axioms.containsKey(axiom);
     }

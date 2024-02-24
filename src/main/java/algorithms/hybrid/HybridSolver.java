@@ -470,7 +470,7 @@ public class HybridSolver implements ISolver {
             return true;
         }
 
-        if (!abd_literals.contains(child)){
+        if (!abd_literals.getAxioms().contains(child)){
             //System.out.println(child + "literal not in abducibles");
             return true;
         }
@@ -539,8 +539,8 @@ public class HybridSolver implements ISolver {
         explanations.addAll(conflictC2.getExplanations());
 
         Axioms conflictLiterals = new Axioms();
-        conflictLiterals.getAxioms().addAll(conflictC1.getAxioms().getAxioms());
-        conflictLiterals.getAxioms().addAll(conflictC2.getAxioms().getAxioms());
+        conflictLiterals.addAll(conflictC1.getAxioms().getAxioms());
+        conflictLiterals.addAll(conflictC2.getAxioms().getAxioms());
 
         while (!isOntologyWithLiteralsConsistent(conflictLiterals.getAxioms())) {
 
@@ -560,9 +560,9 @@ public class HybridSolver implements ISolver {
 
             CS.getOwlAxioms().addAll(X.getOwlAxioms());
 
-            conflictLiterals.getAxioms().removeAll(conflictC1.getAxioms().getAxioms());
-            X.getOwlAxioms().stream().findFirst().ifPresent(axiom -> conflictC1.getAxioms().getAxioms().remove(axiom));
-            conflictLiterals.getAxioms().addAll(conflictC1.getAxioms().getAxioms());
+            conflictLiterals.removeAll(conflictC1.getAxioms().getAxioms());
+            X.getOwlAxioms().stream().findFirst().ifPresent(axiom -> conflictC1.getAxioms().remove(axiom));
+            conflictLiterals.addAll(conflictC1.getAxioms().getAxioms());
 
             if (explanations.contains(CS) || isTimeout()) {
                 break;
