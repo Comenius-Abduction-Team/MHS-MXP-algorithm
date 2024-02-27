@@ -33,4 +33,8 @@ public class Configuration {
     public static boolean CHECK_RELEVANCE_DURING_BUILDING_TREE_IN_MHS_MXP = false;
 
     //public static boolean RETURN_CACHED_EXPLANATION_IN_QXP = true;
+
+    public static boolean HST = false;
+
+    public static boolean DEBUG_PRINT = false;
 }

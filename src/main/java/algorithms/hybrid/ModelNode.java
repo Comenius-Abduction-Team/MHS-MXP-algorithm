@@ -10,7 +10,8 @@ public class ModelNode extends TreeNode {
 
     public Set<OWLAxiom> data;
     public boolean modelIsValid = true;
-    Set<OWLAxiom> lenghtOneExplanations = new HashSet<>();
+    private final Set<OWLAxiom> lenghtOneExplanations = new HashSet<>();
+    public int min, index, parentIndex = -1;
 
     @Override
     public boolean equals(Object obj) {

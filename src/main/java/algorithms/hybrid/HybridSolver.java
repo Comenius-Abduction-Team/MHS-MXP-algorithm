@@ -5,10 +5,7 @@ import com.google.common.collect.Iterables;
 import common.Configuration;
 
 import common.IPrinter;
-import models.Abducibles;
-import models.Explanation;
-import models.Axioms;
-import models.IAxioms;
+import models.*;
 import org.semanticweb.owlapi.model.*;
 
 import progress.IProgressManager;
@@ -28,7 +25,7 @@ public class HybridSolver implements ISolver {
 
     private ILoader loader;
     private IReasonerManager reasonerManager;
-    private IAxioms abd_literals;
+    private IAxioms abducibleAxioms;
     private ModelExtractor modelExtractor;
     private final IExplanationManager explanationManager;
     private final IProgressManager progressManager;
@@ -51,6 +48,7 @@ public class HybridSolver implements ISolver {
     public boolean checkingMinimalityWithQXP = false;
     private IRuleChecker ruleChecker;
     private Integer currentDepth;
+    private int globalMin;
 
     public HybridSolver(ThreadTimes threadTimes,
                         IExplanationManager explanationManager, IProgressManager progressManager, IPrinter printer) {
@@ -110,7 +108,13 @@ public class HybridSolver implements ISolver {
 
         initialize();
 
-        String message = null;
+        if (Configuration.HST){
+            //Initially, MIN is set to |COMP|
+            globalMin = abducibleAxioms.getAxioms().size();
+            //System.out.println("GLOBAL MIN INIT VALUE: " + globalMin);
+        }
+
+        String message;
 
         if (!reasonerManager.isOntologyConsistent()) {
             message = "The observation is already entailed!";
@@ -118,7 +122,7 @@ public class HybridSolver implements ISolver {
         }
 
         else {
-            reasonerManager.isOntologyWithLiteralsConsistent(abd_literals.getAxioms(), ontology);
+            reasonerManager.isOntologyWithLiteralsConsistent(abducibleAxioms.getAxioms(), ontology);
             trySolve();
         }
         //trySolve();
@@ -132,7 +136,7 @@ public class HybridSolver implements ISolver {
             startSolving();
         } catch (Throwable e) {
             makeErrorAndPartialLog(e);
-            message = "An error occured!";
+            message = "An error occured: " + e.getMessage();
             throw e;
         } finally {
             explanationManager.processExplanations(message);
@@ -140,7 +144,7 @@ public class HybridSolver implements ISolver {
     }
 
     private void makeErrorAndPartialLog(Throwable e) {
-        explanationManager.showError(e);
+        explanationManager.logError(e);
 
         Double time = threadTimes.getTotalUserTimeInSec();
         levelTimes.put(currentDepth, time);
@@ -170,7 +174,12 @@ public class HybridSolver implements ISolver {
             } else {
                 abduciblesWithoutObservation.remove(loader.getObservation().getOwlAxiom());
             }
-            abd_literals = new Axioms(abduciblesWithoutObservation);
+
+            if (Configuration.HST)
+                abducibleAxioms = new NumberedAxioms(abduciblesWithoutObservation);
+            else
+                abducibleAxioms = new Axioms(abduciblesWithoutObservation);
+
             return;
         }
 
@@ -210,21 +219,21 @@ public class HybridSolver implements ISolver {
             negAssertionsAxioms.remove(loader.getObservation().getOwlAxiom());
         }
 
-        Set<OWLAxiom> to_abd = new HashSet<>();
+        Set<OWLAxiom> abduciblesToAdd = new HashSet<>(assertionsAxioms);
 
-        if(Configuration.NEGATION_ALLOWED){
-            to_abd.addAll(assertionsAxioms);
-            to_abd.addAll(negAssertionsAxioms);
-        } else {
-            to_abd.addAll(assertionsAxioms);
-        }
+        if(Configuration.NEGATION_ALLOWED)
+            abduciblesToAdd.addAll(negAssertionsAxioms);
 
-        abd_literals = new Axioms(to_abd);
+        if (Configuration.HST)
+            abducibleAxioms = new NumberedAxioms(abduciblesToAdd);
+        else
+            abducibleAxioms = new Axioms(abduciblesToAdd);
     }
 
     private void startSolving() throws OWLOntologyCreationException {
         if (Configuration.PRINT_PROGRESS)
             progressManager.updateProgress(0, "Abduction initialized.");
+
         currentDepth = 0;
 
         Queue<TreeNode> queue = new LinkedList<>();
@@ -241,21 +250,73 @@ public class HybridSolver implements ISolver {
             if(increaseDepth(node)){
                 currentDepth++;
             }
-            if(isTimeout() || !ModelNode.class.isAssignableFrom(node.getClass())){
+            if(isTimeout()){
                 makeTimeoutPartialLog();
                 break;
             }
 
             ModelNode model = (ModelNode) node;
 
-            //System.out.println("model = " + model.data);
-            //System.out.println(model.data.size());
+            if (Configuration.DEBUG_PRINT)
+                System.out.println("*********\n" + "PROCESSING child of " + model.parentIndex + ": " + model.index + ". " + model.data);
 
             if (model.depth.equals(Configuration.DEPTH)) {
                 break;
             }
 
-            for (OWLAxiom child : model.data){
+            NumberedAxioms abducibles = null;
+
+            if (Configuration.HST){
+
+                abducibles = (NumberedAxioms) abducibleAxioms;
+
+                for (OWLAxiom child : model.data){
+                    //For every component C in y with no previously defined index ci,
+                    // let ci(C) be MIN and decrement MIN afterwards.
+                    if (abducibles.contains(child) && NumberedAxioms.DEFAULT_INDEX.equals(abducibles.getIndex(child))){
+                        if (globalMin > 0){
+                            abducibles.setIndex(child,globalMin);
+                            globalMin -= 1;
+                        }
+                    }
+                }
+                //Let min(v) be MIN + 1
+                model.min = globalMin + 1;
+                if (Configuration.DEBUG_PRINT)
+                    System.out.println("min of " + model.index + " == " + model.min);
+
+                // If i(v) > min(v) create a new array ranging over min(v), . . . , i(v)−1.
+                // Otherwise, let mark(v) = × and create no child nodes for v.
+
+                if (model.index <= model.min){
+                    if (Configuration.DEBUG_PRINT)
+                        System.out.println(model.index + " <= " + model.min);
+                    continue;
+                }
+
+            }
+
+            //for (OWLAxiom child : model.data){
+            for (OWLAxiom child : abducibleAxioms.getAxioms()){
+
+                Integer index = NumberedAxioms.DEFAULT_INDEX;
+
+                if (Configuration.DEBUG_PRINT)
+                    System.out.println("TRYING EDGE: " + abducibles.getIndex(child) + ". " + child);
+
+                if (Configuration.HST){
+                    index = abducibles.getIndex(child);
+                    //child not in abducibles
+                    if (index == null)
+                        continue;
+                    //a new array ranging over min(v), . . . , i(v)−1
+                    if (index < model.min)
+                        continue;
+                    if (index >= model.index)
+                        continue;
+                    if (index < 1)
+                        continue;
+                }
 
                 if(isTimeout()){
                     makeTimeoutPartialLog();
@@ -266,6 +327,8 @@ public class HybridSolver implements ISolver {
                 //ak axiom nie je v abducibles
                 //nepokracujeme vo vetve
                 if(isIncorrectPath(model, child)){
+                    if (Configuration.DEBUG_PRINT)
+                        System.out.println("INCORRECT PATH: " + abducibles.getIndex(child));
                     continue;
                 }
 
@@ -279,9 +342,17 @@ public class HybridSolver implements ISolver {
                 path = new HashSet<>(explanation.getOwlAxioms());
 
                 if(canBePruned(explanation)){
+                    if (Configuration.HST && Configuration.DEBUG_PRINT){
+                        System.out.println("CAN BE PRUNED: " + abducibles.getIndex(child));
+                    }
                     path.clear();
                     continue;
                 }
+
+//                if (Configuration.HST && Configuration.DEBUG_PRINT){
+//                    //System.out.println("PARENT: " + model.index + " | MIN: " + model.min + " | EDGE: " + abducibles.getIndex(child) + ". " + child);
+//                    System.out.println("child will be created");
+//                }
 
                 if (!Configuration.REUSE_OF_MODELS || !usableModelInModels()) {
                     if(isTimeout()){
@@ -302,6 +373,8 @@ public class HybridSolver implements ISolver {
                                 makeTimeoutPartialLog();
                                 return;
                             }
+                            if (Configuration.DEBUG_PRINT)
+                                System.out.println("not add new explanations?");
                             continue;
                         }
                         if(isTimeout()){
@@ -313,7 +386,8 @@ public class HybridSolver implements ISolver {
                 else{
                     explanationManager.setLengthOneExplanations(new ArrayList<>());
                 }
-                addNodeToTree(queue, explanation, model);
+
+                addNodeToTree(queue, explanation, model, index);
             }
         }
         path.clear();
@@ -351,6 +425,10 @@ public class HybridSolver implements ISolver {
         if(root == null){
             return;
         }
+        if (Configuration.HST){
+            //Set i(v) = |COMP| + 1
+            root.index = abducibleAxioms.getAxioms().size() + 1;
+        }
         queue.add(root);
     }
 
@@ -370,17 +448,24 @@ public class HybridSolver implements ISolver {
         }
     }
 
-    private void addNodeToTree(Queue<TreeNode> queue, Explanation explanation, ModelNode model){
-        ModelNode modelNode = createModelNodeFromExistingModel(false, explanation, model.depth + 1);
-        if(modelNode == null){
+    private void addNodeToTree(Queue<TreeNode> queue, Explanation explanation, ModelNode parent, int index){
+        ModelNode newNode = createModelNodeFromExistingModel(false, explanation, parent.depth + 1);
+        if(newNode == null){
             path.clear();
             return;
         }
         if(!Configuration.MHS_MODE){
-            modelNode.addLengthOneExplanationsFromNode(model);
-            modelNode.addLengthOneExplanations(explanationManager.getLengthOneExplanations());
+            newNode.addLengthOneExplanationsFromNode(parent);
+            newNode.addLengthOneExplanations(explanationManager.getLengthOneExplanations());
         }
-        queue.add(modelNode);
+        if (Configuration.HST){
+            newNode.index = index;
+            newNode.parentIndex = parent.index;
+        }
+        queue.add(newNode);
+        if (Configuration.HST && Configuration.DEBUG_PRINT){
+            System.out.println("Created node: " + index + ", child of " + parent.index);
+        }
         path.clear();
     }
 
@@ -470,7 +555,7 @@ public class HybridSolver implements ISolver {
             return true;
         }
 
-        if (!abd_literals.getAxioms().contains(child)){
+        if (!Configuration.HST && !abducibleAxioms.getAxioms().contains(child)){
             //System.out.println(child + "literal not in abducibles");
             return true;
         }
@@ -479,18 +564,18 @@ public class HybridSolver implements ISolver {
     }
 
     Conflict getMergeConflict() {
-        return findConflicts(abd_literals);
+        return findConflicts(abducibleAxioms);
     }
 
     private List<Explanation> findExplanations(){
-        abd_literals.removeAll(path);
-        abd_literals.removeAll(explanationManager.getLengthOneExplanations());
+        IAxioms backup = abducibleAxioms.copy();
+        abducibleAxioms.removeAll(path);
+        abducibleAxioms.removeAll(explanationManager.getLengthOneExplanations());
         if(Configuration.CACHED_CONFLICTS_LONGEST_CONFLICT){
             setDivider.setIndexesOfExplanations(explanationManager.getPossibleExplanationsCount());
         }
-        Conflict conflict = findConflicts(abd_literals);
-        abd_literals.addAll(path);
-        abd_literals.addAll(explanationManager.getLengthOneExplanations());
+        Conflict conflict = findConflicts(abducibleAxioms);
+        abducibleAxioms = backup;
         return conflict.getExplanations();
     }
 
