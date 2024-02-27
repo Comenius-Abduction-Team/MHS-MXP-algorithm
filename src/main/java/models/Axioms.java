@@ -21,6 +21,11 @@ public class Axioms implements IAxioms {
     }
 
     @Override
+    public IAxioms copy() {
+        return new Axioms(owlAxioms);
+    }
+
+    @Override
     public Set<OWLAxiom> copyAsSet() {
         return new HashSet<>(owlAxioms);
     }

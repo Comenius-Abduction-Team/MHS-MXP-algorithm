@@ -10,6 +10,8 @@ public interface IAxioms {
 
     Collection<OWLAxiom> getAxioms();
 
+    IAxioms copy();
+
     Set<OWLAxiom> copyAsSet();
 
     List<OWLAxiom> copyAsList();

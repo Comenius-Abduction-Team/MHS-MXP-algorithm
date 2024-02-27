@@ -6,13 +6,26 @@ import java.util.*;
 
 public class NumberedAxioms implements IAxioms{
 
-    public static final Integer DEFAULT_INDEX = -1;
+    public static final Integer DEFAULT_INDEX = -100;
 
     Map<OWLAxiom, Integer> axioms = new HashMap<>();
 
+    public NumberedAxioms(){}
+
+    public NumberedAxioms(Collection<OWLAxiom> owlAxioms) {
+        addAll(owlAxioms);
+    }
+
     @Override
     public Collection<OWLAxiom> getAxioms() {
-        return axioms.keySet();
+        return Collections.unmodifiableSet(axioms.keySet());
+    }
+
+    @Override
+    public IAxioms copy() {
+        NumberedAxioms copy = new NumberedAxioms();
+        axioms.forEach(copy::setIndex);
+        return copy;
     }
 
     @Override
@@ -40,11 +53,6 @@ public class NumberedAxioms implements IAxioms{
 //    public void addAll(IAxioms axioms) {
 //        axioms.toSet().forEach(this::add);
 //    }
-
-    public void addWithIndex(OWLAxiom axiom, Integer index) {
-        if (!axioms.containsKey(axiom))
-            axioms.put(axiom,index);
-    }
 
 //    @Override
 //    public void set(Collection<OWLAxiom> axioms) {
@@ -109,5 +117,10 @@ public class NumberedAxioms implements IAxioms{
 
     public void setIndex(OWLAxiom axiom, Integer index){
         axioms.put(axiom,index);
+    }
+
+    @Override
+    public String toString() {
+        return axioms.toString();
     }
 }
