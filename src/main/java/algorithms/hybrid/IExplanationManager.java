@@ -32,7 +32,7 @@ public interface IExplanationManager {
 
     void showExplanations() throws OWLOntologyStorageException, OWLOntologyCreationException;
 
-    void showError(Throwable e);
+    void logError(Throwable e);
 
     void logMessages(List<String> info, String message);
 

@@ -120,7 +120,7 @@ public abstract class ExplanationManager implements IExplanationManager {
     }
 
     @Override
-    public void showError(Throwable e) {
+    public void logError(Throwable e) {
         StringWriter result = new StringWriter();
         PrintWriter printWriter = new PrintWriter(result);
         e.printStackTrace(printWriter);
@@ -144,7 +144,7 @@ public abstract class ExplanationManager implements IExplanationManager {
     private StringBuilder showExplanationsAccordingToLength(List<Explanation> filteredExplanations) throws OWLOntologyCreationException {
         StringBuilder result = new StringBuilder();
         int depth = 1;
-        while (filteredExplanations.size() > 0) {
+        while (!filteredExplanations.isEmpty()) {
             List<Explanation> currentExplanations = removeExplanationsWithDepth(filteredExplanations, depth);
             if(!Configuration.MHS_MODE){
                 if(!Configuration.CHECKING_MINIMALITY_BY_QXP){
@@ -160,8 +160,8 @@ public abstract class ExplanationManager implements IExplanationManager {
                 solver.levelTimes.put(depth, findLevelTime(currentExplanations));
             }
             finalExplanations.addAll(currentExplanations);
-            String currentExplanationsFormat = StringUtils.join(currentExplanations, ",");
-            String line = String.format("%d;%d;%.2f;{%s}", depth, currentExplanations.size(), solver.levelTimes.get(depth), currentExplanationsFormat);
+            String currentExplanationsFormat = StringUtils.join(currentExplanations, ", ");
+            String line = String.format("%d; %d; %.2f; { %s }\n", depth, currentExplanations.size(), solver.levelTimes.get(depth), currentExplanationsFormat);
             result.append(line);
             depth++;
         }

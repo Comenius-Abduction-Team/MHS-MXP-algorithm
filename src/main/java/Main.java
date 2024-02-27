@@ -1,5 +1,3 @@
-package common;
-
 import abduction_api.abducible.SymbolAbducibleContainer;
 import abduction_api.manager.ExplanationWrapper;
 import abduction_api.manager.MultiObservationManager;
@@ -12,6 +10,8 @@ import algorithms.hybrid.HybridSolver;
 import api_implementation.MhsMxpAbductionFactory;
 import application.Application;
 import application.ExitCode;
+import common.Configuration;
+import common.ConsolePrinter;
 import file_logger.FileLogger;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
@@ -27,11 +27,10 @@ import timer.ThreadTimes;
 import java.io.*;
 import java.util.Collections;
 import java.util.Set;
-
 public class Main {
 
     /** whether the solver is being run from an IDE*/
-    private static boolean TESTING = false;
+    private static boolean TESTING = true;
     /** whether the solver is being run from an IDE through the API*/
     private static final boolean API = false;
 
@@ -56,7 +55,8 @@ public class Main {
 
         try{
             runSolving(args, threadTimes, logger);
-        } catch(Exception e) {
+        } catch(Throwable e) {
+            e.printStackTrace();
             Application.finish(ExitCode.ERROR);
         } finally {
             threadTimes.interrupt();
@@ -65,10 +65,13 @@ public class Main {
     }
 
     private static void runApiTestingMain() throws OWLOntologyCreationException {
+
+        Configuration.PRINT_PROGRESS = true;
+
         MhsMxpAbductionFactory factory = MhsMxpAbductionFactory.getFactory();
 
         OWLOntologyManager ontologyManager = OWLManager.createOWLOntologyManager();
-        File file = new File("files/testExtractingModel9_2.owl");
+        File file = new File("files/testExtractingModel9_1.owl");
         OWLOntology ont = ontologyManager.loadOntologyFromOntologyDocument(file);
 
         OWLDataFactory dataFactory = ontologyManager.getOWLDataFactory();
