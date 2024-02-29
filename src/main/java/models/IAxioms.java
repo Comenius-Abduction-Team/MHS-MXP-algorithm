@@ -10,18 +10,14 @@ public interface IAxioms {
 
     Collection<OWLAxiom> getAxioms();
 
-    IAxioms copy();
-
-    Set<OWLAxiom> copyAsSet();
-
-    List<OWLAxiom> copyAsList();
+    void add(OWLAxiom axiom);
 
     void addAll(Collection<OWLAxiom> axioms);
-
-    void add(OWLAxiom axiom);
 
     void remove(OWLAxiom axiom);
 
     void removeAll(Collection<OWLAxiom> axioms);
+
+    int size();
 
 }

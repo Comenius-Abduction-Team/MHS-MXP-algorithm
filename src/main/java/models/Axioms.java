@@ -15,22 +15,23 @@ public class Axioms implements IAxioms {
         this.owlAxioms.addAll(owlAxioms);
     }
 
+    public Axioms(IAxioms other) {
+        this.owlAxioms.addAll(other.getAxioms());
+    }
+
     @Override
     public Collection<OWLAxiom> getAxioms() {
         return Collections.unmodifiableSet(owlAxioms);
     }
 
-    @Override
     public IAxioms copy() {
         return new Axioms(owlAxioms);
     }
 
-    @Override
     public Set<OWLAxiom> copyAsSet() {
         return new HashSet<>(owlAxioms);
     }
 
-    @Override
     public List<OWLAxiom> copyAsList() {
         return new ArrayList<>(owlAxioms);
     }
@@ -62,5 +63,10 @@ public class Axioms implements IAxioms {
             result.append(StringFactory.getRepresentation(owlAxiom)).append(";");
         }
         return result.toString();
+    }
+
+    @Override
+    public int size() {
+        return owlAxioms.size();
     }
 }

@@ -8,7 +8,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import java.io.IOException;
 import java.util.Collection;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class FamilyTest extends AlgorithmTestBase {
 
@@ -37,28 +37,34 @@ public class FamilyTest extends AlgorithmTestBase {
         symbolAbd.addSymbol(grandmother);
     }
 
-//    @Test
-//    void defaultMode() {
-//
-//        manager.solveAbduction();
-//
-//        Collection<ExplanationWrapper> explanations = manager.getExplanations();
-//
-//        assertEquals(7, explanations.size());
-//
-//    }
-//
-//    @Test
-//    void mhs() {
-//
-//        manager.setPureMhs(true);
-//
-//        manager.solveAbduction();
-//
-//        Collection<ExplanationWrapper> explanations = manager.getExplanations();
-//        assertEquals(7, explanations.size());
-//
-//    }
+    @Test
+    void defaultMode() {
+
+        manager.setDepth(3);
+
+        manager.solveAbduction();
+
+        Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations.size()); //3
+        System.out.println(explanations);
+        assertFalse(explanations.isEmpty());
+
+    }
+
+    @Test
+    void mhs() {
+
+        manager.setPureMhs(true);
+        manager.setDepth(3);
+
+        manager.solveAbduction();
+
+        Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations.size()); //3
+        System.out.println(explanations);
+        assertFalse(explanations.isEmpty());
+
+    }
 
     @Test
     void noNeg() {
@@ -82,6 +88,7 @@ public class FamilyTest extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(4, explanations.size());
 
     }
@@ -94,6 +101,7 @@ public class FamilyTest extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(1, explanations.size());
 
     }
@@ -107,10 +115,12 @@ public class FamilyTest extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(1, explanations.size());
 
     }
 
+    @Test
     void symbolAbdNoNeg() {
 
         manager.setAbducibleContainer(symbolAbd);
@@ -119,6 +129,7 @@ public class FamilyTest extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(1, explanations.size());
 
     }
@@ -133,6 +144,7 @@ public class FamilyTest extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(1, explanations.size());
 
     }

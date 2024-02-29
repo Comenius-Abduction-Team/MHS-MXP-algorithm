@@ -1,47 +1,30 @@
-package models;
+package algorithms.hst;
 
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import java.util.*;
 
-public class NumberedAxioms implements IAxioms{
+public class NumberedAxiomsMap implements INumberedAxioms {
 
     public static final Integer DEFAULT_INDEX = -100;
 
-    Map<OWLAxiom, Integer> axioms = new HashMap<>();
+    Map<OWLAxiom, Integer> axiomToIndex = new HashMap<>();
 
-    public NumberedAxioms(){}
+    Map<Integer, OWLAxiom> indexToAxiom = new HashMap<>();
 
-    public NumberedAxioms(Collection<OWLAxiom> owlAxioms) {
+    public NumberedAxiomsMap(Collection<OWLAxiom> owlAxioms) {
         addAll(owlAxioms);
     }
 
     @Override
     public Collection<OWLAxiom> getAxioms() {
-        return Collections.unmodifiableSet(axioms.keySet());
-    }
-
-    @Override
-    public IAxioms copy() {
-        NumberedAxioms copy = new NumberedAxioms();
-        axioms.forEach(copy::setIndex);
-        return copy;
-    }
-
-    @Override
-    public Set<OWLAxiom> copyAsSet() {
-        return new HashSet<>(axioms.keySet());
-    }
-
-    @Override
-    public List<OWLAxiom> copyAsList() {
-        return new ArrayList<>(axioms.keySet());
+        return Collections.unmodifiableSet(axiomToIndex.keySet());
     }
 
     @Override
     public void add(OWLAxiom axiom) {
-        if (!axioms.containsKey(axiom))
-            axioms.put(axiom, DEFAULT_INDEX);
+        if (!axiomToIndex.containsKey(axiom))
+            axiomToIndex.put(axiom, DEFAULT_INDEX);
     }
 
     @Override
@@ -62,12 +45,16 @@ public class NumberedAxioms implements IAxioms{
 
     @Override
     public void remove(OWLAxiom axiom) {
-        axioms.remove(axiom);
+        Integer index = axiomToIndex.get(axiom);
+        if (index == null)
+            return;
+        axiomToIndex.remove(axiom);
+        indexToAxiom.remove(index);
     }
 
     @Override
     public void removeAll(Collection<OWLAxiom> axioms) {
-        this.axioms.keySet().removeAll(axioms);
+        axioms.forEach(this::remove);
     }
 
 //    @Override
@@ -76,7 +63,7 @@ public class NumberedAxioms implements IAxioms{
 //    }
 
     public boolean contains(OWLAxiom axiom) {
-        return axioms.containsKey(axiom);
+        return axiomToIndex.containsKey(axiom);
     }
 
 //    @Override
@@ -112,15 +99,31 @@ public class NumberedAxioms implements IAxioms{
 //    }
 
     public Integer getIndex(OWLAxiom axiom){
-        return axioms.get(axiom);
+        return axiomToIndex.get(axiom);
     }
 
-    public void setIndex(OWLAxiom axiom, Integer index){
-        axioms.put(axiom,index);
+    public void addWithIndex(OWLAxiom axiom, Integer index){
+        axiomToIndex.put(axiom,index);
+        indexToAxiom.put(index,axiom);
     }
 
     @Override
     public String toString() {
-        return axioms.toString();
+        return axiomToIndex.toString();
+    }
+
+    @Override
+    public OWLAxiom getAxiomByIndex(int index){
+        return indexToAxiom.get(index);
+    }
+
+    @Override
+    public boolean shouldBeIndexed(OWLAxiom axiom) {
+        return (DEFAULT_INDEX.equals(getIndex(axiom)));
+    }
+
+    @Override
+    public int size() {
+        return axiomToIndex.size();
     }
 }

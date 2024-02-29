@@ -1,6 +1,8 @@
 package algorithms.hybrid;
 
 import algorithms.ISolver;
+import algorithms.hst.INumberedAxioms;
+import algorithms.hst.NumberedAxiomsUnindexedSet;
 import com.google.common.collect.Iterables;
 import common.Configuration;
 
@@ -109,9 +111,9 @@ public class HybridSolver implements ISolver {
         initialize();
 
         if (Configuration.HST){
+            //System.out.println("USING HST");
             //Initially, MIN is set to |COMP|
-            globalMin = abducibleAxioms.getAxioms().size();
-            //System.out.println("GLOBAL MIN INIT VALUE: " + globalMin);
+            globalMin = abducibleAxioms.size();
         }
 
         String message;
@@ -176,7 +178,7 @@ public class HybridSolver implements ISolver {
             }
 
             if (Configuration.HST)
-                abducibleAxioms = new NumberedAxioms(abduciblesWithoutObservation);
+                abducibleAxioms = new NumberedAxiomsUnindexedSet(abduciblesWithoutObservation);
             else
                 abducibleAxioms = new Axioms(abduciblesWithoutObservation);
 
@@ -225,7 +227,7 @@ public class HybridSolver implements ISolver {
             abduciblesToAdd.addAll(negAssertionsAxioms);
 
         if (Configuration.HST)
-            abducibleAxioms = new NumberedAxioms(abduciblesToAdd);
+            abducibleAxioms = new NumberedAxiomsUnindexedSet(abduciblesToAdd);
         else
             abducibleAxioms = new Axioms(abduciblesToAdd);
     }
@@ -264,22 +266,15 @@ public class HybridSolver implements ISolver {
                 break;
             }
 
-            NumberedAxioms abducibles = null;
+            NumberedAxiomsUnindexedSet abducibles = null;
 
             if (Configuration.HST){
 
-                abducibles = (NumberedAxioms) abducibleAxioms;
+                abducibles = (NumberedAxiomsUnindexedSet) abducibleAxioms;
 
-                for (OWLAxiom child : model.data){
-                    //For every component C in y with no previously defined index ci,
-                    // let ci(C) be MIN and decrement MIN afterwards.
-                    if (abducibles.contains(child) && NumberedAxioms.DEFAULT_INDEX.equals(abducibles.getIndex(child))){
-                        if (globalMin > 0){
-                            abducibles.setIndex(child,globalMin);
-                            globalMin -= 1;
-                        }
-                    }
-                }
+                if (globalMin > 0)
+                    indexAxiomsFromModel(model, abducibles);
+                
                 //Let min(v) be MIN + 1
                 model.min = globalMin + 1;
                 if (Configuration.DEBUG_PRINT)
@@ -297,15 +292,16 @@ public class HybridSolver implements ISolver {
             }
 
             //for (OWLAxiom child : model.data){
-            for (OWLAxiom child : abducibleAxioms.getAxioms()){
+            for (int index = model.min; index < model.index; index++){
 
-                Integer index = NumberedAxioms.DEFAULT_INDEX;
-
+                OWLAxiom child = abducibles.getAxiomByIndex(index);
+                if (child == null)
+                    continue;
+//
                 if (Configuration.DEBUG_PRINT)
-                    System.out.println("TRYING EDGE: " + abducibles.getIndex(child) + ". " + child);
+                    System.out.println("TRYING EDGE: " + index + ". " + child);
 
-                if (Configuration.HST){
-                    index = abducibles.getIndex(child);
+                /*if (Configuration.HST){
                     //child not in abducibles
                     if (index == null)
                         continue;
@@ -316,7 +312,7 @@ public class HybridSolver implements ISolver {
                         continue;
                     if (index < 1)
                         continue;
-                }
+                }*/
 
                 if(isTimeout()){
                     makeTimeoutPartialLog();
@@ -328,7 +324,7 @@ public class HybridSolver implements ISolver {
                 //nepokracujeme vo vetve
                 if(isIncorrectPath(model, child)){
                     if (Configuration.DEBUG_PRINT)
-                        System.out.println("INCORRECT PATH: " + abducibles.getIndex(child));
+                        System.out.println("INCORRECT PATH: " + index);
                     continue;
                 }
 
@@ -343,16 +339,16 @@ public class HybridSolver implements ISolver {
 
                 if(canBePruned(explanation)){
                     if (Configuration.HST && Configuration.DEBUG_PRINT){
-                        System.out.println("CAN BE PRUNED: " + abducibles.getIndex(child));
+                        System.out.println("CAN BE PRUNED: " + index);
                     }
                     path.clear();
                     continue;
                 }
 
-//                if (Configuration.HST && Configuration.DEBUG_PRINT){
-//                    //System.out.println("PARENT: " + model.index + " | MIN: " + model.min + " | EDGE: " + abducibles.getIndex(child) + ". " + child);
-//                    System.out.println("child will be created");
-//                }
+                if (Configuration.HST && Configuration.DEBUG_PRINT){
+                    //System.out.println("PARENT: " + model.index + " | MIN: " + model.min + " | EDGE: " + abducibles.getIndex(child) + ". " + child);
+                    System.out.println("child will be created");
+                }
 
                 if (!Configuration.REUSE_OF_MODELS || !usableModelInModels()) {
                     if(isTimeout()){
@@ -374,7 +370,7 @@ public class HybridSolver implements ISolver {
                                 return;
                             }
                             if (Configuration.DEBUG_PRINT)
-                                System.out.println("not add new explanations?");
+                                System.out.println("pruned by MXP");
                             continue;
                         }
                         if(isTimeout()){
@@ -396,6 +392,21 @@ public class HybridSolver implements ISolver {
             makePartialLog();
         }
         currentDepth = 0;
+    }
+
+    private void indexAxiomsFromModel(ModelNode model, INumberedAxioms abducibles){
+        for (OWLAxiom child : model.data){
+            //For every component C in y with no previously defined index ci,
+            // let ci(C) be MIN and decrement MIN afterwards.
+            if (abducibles.shouldBeIndexed(child)){
+                if (globalMin > 0){
+                    abducibles.addWithIndex(child,globalMin);
+                    globalMin -= 1;
+                }
+                else
+                    System.out.println("WEEEEEEEEEEEEEEEEEEEEEEEEEEEIRD!!!!!");
+            }
+        }
     }
 
     private void makePartialLog() {
@@ -427,7 +438,7 @@ public class HybridSolver implements ISolver {
         }
         if (Configuration.HST){
             //Set i(v) = |COMP| + 1
-            root.index = abducibleAxioms.getAxioms().size() + 1;
+            root.index = globalMin + 1;
         }
         queue.add(root);
     }
@@ -520,10 +531,10 @@ public class HybridSolver implements ISolver {
         if (!ruleChecker.isMinimal(explanationManager.getPossibleExplanations(), explanation)){
             return true;
         }
-        if(pathsInCertainDepth.contains(path)){
-            return true;
-        }
-        pathsInCertainDepth.add(new HashSet<>(path));
+//        if(pathsInCertainDepth.contains(path)){
+//            return true;
+//        }
+//        pathsInCertainDepth.add(new HashSet<>(path));
 
         if(Configuration.CHECK_RELEVANCE_DURING_BUILDING_TREE_IN_MHS_MXP){
             if(!ruleChecker.isRelevant(explanation)){
@@ -543,6 +554,8 @@ public class HybridSolver implements ISolver {
         if(!Configuration.MHS_MODE){
             if (ruleChecker.isExplanation(explanation)){
                 addToExplanations(explanation);
+                if (Configuration.DEBUG_PRINT)
+                    System.out.println("EXPLANATION FOUND: " + explanation);
                 return true;
             }
         }
@@ -555,31 +568,36 @@ public class HybridSolver implements ISolver {
             return true;
         }
 
-        if (!Configuration.HST && !abducibleAxioms.getAxioms().contains(child)){
-            //System.out.println(child + "literal not in abducibles");
+        if (!Configuration.HST && !abducibleAxioms.getAxioms().contains(child))
             return true;
-        }
 
         return false;
     }
 
     Conflict getMergeConflict() {
-        return findConflicts(abducibleAxioms);
+        return findConflicts(new Axioms(abducibleAxioms));
     }
 
     private List<Explanation> findExplanations(){
-        IAxioms backup = abducibleAxioms.copy();
-        abducibleAxioms.removeAll(path);
-        abducibleAxioms.removeAll(explanationManager.getLengthOneExplanations());
+
+        Axioms copy = new Axioms();
+
+        List<OWLAxiom> lengthOne = explanationManager.getLengthOneExplanations();
+
+        abducibleAxioms.getAxioms().forEach(a ->{
+            if (!path.contains(a) && !lengthOne.contains(a))
+                copy.add(a);
+        });
+
         if(Configuration.CACHED_CONFLICTS_LONGEST_CONFLICT){
             setDivider.setIndexesOfExplanations(explanationManager.getPossibleExplanationsCount());
         }
-        Conflict conflict = findConflicts(abducibleAxioms);
-        abducibleAxioms = backup;
+        Conflict conflict = findConflicts(copy);
+
         return conflict.getExplanations();
     }
 
-    private Conflict findConflicts(IAxioms literals) {
+    private Conflict findConflicts(IAxioms axioms) {
         path.remove(negObservation);
         reasonerManager.addAxiomsToOntology(path);
 
@@ -587,13 +605,13 @@ public class HybridSolver implements ISolver {
             return new Conflict(new Axioms(), new LinkedList<>());
         }
 
-        if (isOntologyWithLiteralsConsistent(literals.getAxioms())) {
-            return new Conflict(literals, new LinkedList<>());
+        if (isOntologyWithLiteralsConsistent(axioms.getAxioms())) {
+            return new Conflict(axioms, new LinkedList<>());
         }
         resetOntologyToOriginal();
-        if (literals.getAxioms().size() == 1) {
+        if (axioms.size() == 1) {
             List<Explanation> explanations = new LinkedList<>();
-            explanations.add(new Explanation(literals.getAxioms(), literals.getAxioms().size(), currentDepth, threadTimes.getTotalUserTimeInSec()));
+            explanations.add(new Explanation(axioms.getAxioms(), axioms.size(), currentDepth, threadTimes.getTotalUserTimeInSec()));
             return new Conflict(new Axioms(), explanations);
         }
 
@@ -602,7 +620,7 @@ public class HybridSolver implements ISolver {
             indexOfExplanation = setDivider.getIndexOfTheLongestAndNotUsedConflict();
         }
 
-        List<Axioms> sets = setDivider.divideIntoSets(literals);
+        List<Axioms> sets = setDivider.divideIntoSets(axioms);
         double median = setDivider.getMedian();
 
         Conflict conflictC1 = findConflicts(sets.get(0));

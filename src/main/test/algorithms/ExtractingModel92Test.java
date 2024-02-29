@@ -45,6 +45,7 @@ public class ExtractingModel92Test extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(4, explanations.size());
         //String expected = "[{¬B(a),¬F(a),¬D(a)}, {E(a),¬D(a),A(a)}, {E(a),¬D(a),¬B(a)}, {E(a),C(a),¬B(a)}, {¬D(a),A(a),¬F(a)}, {¬F(a),A(a),C(a)}, {¬F(a),¬B(a),C(a)}]";
 //        String expected = "[{E(a),¬D(a)}, {¬F(a),¬D(a)}, {C(a),E(a)}, {¬F(a),C(a)}]";
@@ -60,6 +61,7 @@ public class ExtractingModel92Test extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(4, explanations.size());
 
     }
@@ -72,6 +74,7 @@ public class ExtractingModel92Test extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(1, explanations.size());
 
     }
@@ -85,6 +88,7 @@ public class ExtractingModel92Test extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(1, explanations.size());
 
     }
@@ -97,6 +101,7 @@ public class ExtractingModel92Test extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(2, explanations.size());
 
     }
@@ -110,10 +115,12 @@ public class ExtractingModel92Test extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(2, explanations.size());
 
     }
 
+    @Test
     void symbolAbdNoNeg() {
 
         manager.setAbducibleContainer(symbolAbd);
@@ -122,6 +129,7 @@ public class ExtractingModel92Test extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(0, explanations.size());
 
     }
@@ -136,6 +144,7 @@ public class ExtractingModel92Test extends AlgorithmTestBase {
         manager.solveAbduction();
 
         Collection<ExplanationWrapper> explanations = manager.getExplanations();
+        System.out.println(explanations);
         assertEquals(0, explanations.size());
 
     }

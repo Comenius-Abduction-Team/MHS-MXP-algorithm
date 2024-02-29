@@ -33,6 +33,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     double timeout = 0;
     int depth = 0;
     boolean pureMhs = false;
+    boolean hst = false;
     boolean strictRelevance = true;
 
     boolean multithread = false;
@@ -244,6 +245,7 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     private void setSolverConfiguration(){
 
         Configuration.MHS_MODE = pureMhs;
+        //Configuration.HST = hst;
         Configuration.STRICT_RELEVANCE = strictRelevance;
 
         setDepthInConfiguration();
@@ -346,6 +348,8 @@ public class MhsMxpAbductionManager implements MultiObservationManager, ThreadAb
     public void setPureMhs(boolean pureMhs) {
         this.pureMhs = pureMhs;
     }
+
+    public void setHst(boolean hst){this.hst = hst;}
 
     public boolean isStrictRelevance() {
         return strictRelevance;
